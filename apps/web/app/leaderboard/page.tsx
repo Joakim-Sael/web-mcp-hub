@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { getLeaderboard } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 function rankColor(rank: number): string {
   if (rank === 1) return "text-yellow-400";
   if (rank === 2) return "text-zinc-300";

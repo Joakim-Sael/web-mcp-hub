@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { getConfigById, getToolVotesBatch } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { VoteButtons } from "@/components/vote-buttons";
+
+export const dynamic = "force-dynamic";
 import type { ExecutionDescriptor } from "@web-mcp-hub/db";
 
 function getExecType(exec: ExecutionDescriptor): string {

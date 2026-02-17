@@ -2,6 +2,8 @@ import Link from "next/link";
 import { listConfigs, getStats, getLeaderboard, getConfigVoteSummaries } from "@/lib/db";
 import { IntegrationTabs } from "@/components/integration-tabs";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomePage({
   searchParams,
 }: {

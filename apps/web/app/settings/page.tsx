@@ -3,6 +3,8 @@ import { eq, desc } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { getDb, apiKeys } from "@web-mcp-hub/db";
 import { CreateApiKeyForm } from "@/components/create-api-key-form";
+
+export const dynamic = "force-dynamic";
 import { ApiKeyList } from "@/components/api-key-list";
 
 export default async function SettingsPage() {
