@@ -123,7 +123,7 @@ export function registerTools(server: McpServer): void {
 
 Configs are scoped to URL paths — pass the url parameter to get only configs relevant to a specific page. Without url, returns all configs for the domain.
 
-URL pattern matching rules:
+URL pattern matching rules (patterns are always "domain/path" format — no protocol, no "www.", no Chrome extension match patterns):
 - "example.com" (domain-only) — matches ALL pages on the domain (lowest priority, acts as fallback)
 - "example.com/dashboard" — matches only /dashboard exactly
 - "example.com/dashboard/:id" — matches /dashboard/<anything> (dynamic segment)
@@ -245,6 +245,11 @@ When navigating between pages on the same domain, call lookup_config again with 
 
 Configs are scoped to specific URL paths via urlPattern. The Chrome extension and lookup_config use pattern matching to return only relevant configs for the current page.
 
+**IMPORTANT: urlPattern must be in "domain/path" format — bare domain with optional path. No protocol, no scheme wildcards.**
+  CORRECT: \`"youtube.com"\`, \`"youtube.com/**"\`, \`"example.com/dashboard/:id"\`
+  WRONG:   \`"*://www.youtube.com/*"\` — this is a Chrome extension match pattern, NOT a valid urlPattern
+  WRONG:   \`"https://example.com/page"\` — no protocol prefix allowed (it gets stripped, but avoid it)
+
 **Pattern types (from most to least specific):**
 - \`"example.com/admin/dashboard"\` — exact path match (only /admin/dashboard)
 - \`"example.com/dashboard/:id"\` — dynamic segment, matches /dashboard/<any-single-segment> (e.g. UUIDs, usernames)
@@ -344,11 +349,11 @@ Maps tool parameters to DOM elements via CSS selectors. Two modes:
   }]
 }`,
     {
-      domain: z.string().describe("Normalized domain without protocol, e.g. 'google.com'"),
+      domain: z.string().describe("Bare domain without protocol or www prefix, e.g. 'google.com', 'youtube.com'. NEVER include http://, https://, or www."),
       urlPattern: z
         .string()
         .describe(
-          "URL pattern this config covers. Supports :param for dynamic segments and ** for wildcards. Examples: 'example.com' (all pages), 'example.com/search' (exact), 'example.com/users/:id' (dynamic), 'example.com/admin/**' (prefix)",
+          "URL pattern in 'domain/path' format. MUST be a bare domain with optional path — NEVER use Chrome extension match patterns like '*://...' or 'https://...'. Examples: 'example.com' (all pages), 'example.com/search' (exact), 'example.com/users/:id' (dynamic), 'example.com/admin/**' (prefix)",
         ),
       pageType: z
         .string()
@@ -508,6 +513,8 @@ Use this to signal quality: upvote tools that work well, downvote ones that are 
     `Update an existing WebMCP config by ID. Auto-increments the version number. When updating tools, provide the COMPLETE tools array (it replaces, not merges).
 
 CRITICAL: Every tool's inputSchema must be valid JSON Schema. Each property must be a schema object like {"type":"string","description":"..."}, never a raw value like 200 or "string".
+
+CRITICAL: urlPattern must be in "domain/path" format (e.g. "youtube.com/**"). NEVER use Chrome extension match patterns like "*://www.youtube.com/*" — these will break URL matching in the extension.
 
 See upload_config for full schema rules, execution metadata docs, and examples.`,
     {
