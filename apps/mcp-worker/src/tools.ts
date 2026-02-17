@@ -55,7 +55,13 @@ export function registerTools(agent: AgentLike, hubOpts: HubClientOptions): void
   // lookup_config (read)
   agent.server.tool(
     "lookup_config",
-    `Check if a WebMCP config exists for a domain/URL. Returns matching configs sorted by specificity.`,
+    `Check if a WebMCP config exists for a domain/URL. Returns matching configs sorted by specificity.
+
+URL patterns are always in "domain/path" format — no protocol, no "www.", no Chrome extension match patterns.
+- "example.com" (domain-only) — matches ALL pages (lowest priority fallback)
+- "example.com/dashboard" — exact path match
+- "example.com/dashboard/:id" — dynamic segment
+- "example.com/admin/**" — wildcard prefix match`,
     {
       domain: z.string().describe("Domain to look up, e.g. 'google.com'"),
       url: z.string().optional().describe("Current page URL for path-scoped matching"),
@@ -146,10 +152,23 @@ export function registerTools(agent: AgentLike, hubOpts: HubClientOptions): void
   // upload_config (write — contributor forced to authenticated user)
   agent.server.tool(
     "upload_config",
-    `Submit a new WebMCP config. Your GitHub username will be set as the contributor automatically. Returns 409 if a config already exists for this domain+urlPattern.`,
+    `Submit a new WebMCP config. Your GitHub username will be set as the contributor automatically. Returns 409 if a config already exists for this domain+urlPattern.
+
+IMPORTANT: urlPattern must be in "domain/path" format — bare domain with optional path. No protocol, no scheme wildcards.
+  CORRECT: "youtube.com", "youtube.com/**", "example.com/dashboard/:id"
+  WRONG:   "*://www.youtube.com/*" — this is a Chrome extension match pattern, NOT a valid urlPattern
+  WRONG:   "https://example.com/page" — no protocol prefix allowed`,
     {
-      domain: z.string().describe("Normalized domain without protocol, e.g. 'google.com'"),
-      urlPattern: z.string().describe("URL pattern this config covers"),
+      domain: z
+        .string()
+        .describe(
+          "Bare domain without protocol or www prefix, e.g. 'google.com', 'youtube.com'. NEVER include http://, https://, or www.",
+        ),
+      urlPattern: z
+        .string()
+        .describe(
+          "URL pattern in 'domain/path' format. MUST be a bare domain with optional path — NEVER use Chrome extension match patterns like '*://...' or 'https://...'. Examples: 'example.com' (all pages), 'example.com/search' (exact), 'example.com/users/:id' (dynamic), 'example.com/admin/**' (prefix)",
+        ),
       pageType: z.string().optional().describe("Type of page: search, form, dashboard, etc."),
       title: z.string().describe("Human-readable title"),
       description: z.string().describe("What this config enables agents to do"),
@@ -266,7 +285,9 @@ Use this to signal quality: upvote tools that work well, downvote ones that are 
   // update_config (write — contributor forced to authenticated user)
   agent.server.tool(
     "update_config",
-    `Update an existing WebMCP config by ID. Your GitHub username will be set as the contributor automatically. Auto-increments version.`,
+    `Update an existing WebMCP config by ID. Your GitHub username will be set as the contributor automatically. Auto-increments version.
+
+CRITICAL: urlPattern must be in "domain/path" format (e.g. "youtube.com/**"). NEVER use Chrome extension match patterns like "*://www.youtube.com/*" — these will break URL matching in the extension.`,
     {
       id: z.string().describe("The config ID to update"),
       title: z.string().optional().describe("New title"),
