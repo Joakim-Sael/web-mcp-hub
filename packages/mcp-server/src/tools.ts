@@ -349,7 +349,11 @@ Maps tool parameters to DOM elements via CSS selectors. Two modes:
   }]
 }`,
     {
-      domain: z.string().describe("Bare domain without protocol or www prefix, e.g. 'google.com', 'youtube.com'. NEVER include http://, https://, or www."),
+      domain: z
+        .string()
+        .describe(
+          "Bare domain without protocol or www prefix, e.g. 'google.com', 'youtube.com'. NEVER include http://, https://, or www.",
+        ),
       urlPattern: z
         .string()
         .describe(

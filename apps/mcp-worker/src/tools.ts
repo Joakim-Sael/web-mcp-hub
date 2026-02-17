@@ -159,8 +159,16 @@ IMPORTANT: urlPattern must be in "domain/path" format — bare domain with optio
   WRONG:   "*://www.youtube.com/*" — this is a Chrome extension match pattern, NOT a valid urlPattern
   WRONG:   "https://example.com/page" — no protocol prefix allowed`,
     {
-      domain: z.string().describe("Bare domain without protocol or www prefix, e.g. 'google.com', 'youtube.com'. NEVER include http://, https://, or www."),
-      urlPattern: z.string().describe("URL pattern in 'domain/path' format. MUST be a bare domain with optional path — NEVER use Chrome extension match patterns like '*://...' or 'https://...'. Examples: 'example.com' (all pages), 'example.com/search' (exact), 'example.com/users/:id' (dynamic), 'example.com/admin/**' (prefix)"),
+      domain: z
+        .string()
+        .describe(
+          "Bare domain without protocol or www prefix, e.g. 'google.com', 'youtube.com'. NEVER include http://, https://, or www.",
+        ),
+      urlPattern: z
+        .string()
+        .describe(
+          "URL pattern in 'domain/path' format. MUST be a bare domain with optional path — NEVER use Chrome extension match patterns like '*://...' or 'https://...'. Examples: 'example.com' (all pages), 'example.com/search' (exact), 'example.com/users/:id' (dynamic), 'example.com/admin/**' (prefix)",
+        ),
       pageType: z.string().optional().describe("Type of page: search, form, dashboard, etc."),
       title: z.string().describe("Human-readable title"),
       description: z.string().describe("What this config enables agents to do"),
