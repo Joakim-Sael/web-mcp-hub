@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { updateConfigSchema } from "@web-mcp-hub/db";
 import { getConfigById, updateConfig } from "@/lib/db";
+
+export const dynamic = "force-dynamic";
 import { checkAuth } from "@/lib/auth-check";
 import { rateLimit } from "@/lib/rate-limit";
 

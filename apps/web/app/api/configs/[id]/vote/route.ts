@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getConfigById, upsertToolVote, getToolVotes } from "@/lib/db";
 import { checkAuth } from "@/lib/auth-check";
+
+export const dynamic = "force-dynamic";
 import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
