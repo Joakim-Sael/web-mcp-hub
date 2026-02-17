@@ -23,13 +23,15 @@ if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET && process.
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: DrizzleAdapter(getDb(), {
-    usersTable: users,
-    accountsTable: accounts,
-    sessionsTable: sessions,
-    verificationTokensTable: verificationTokens,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any),
+  adapter: process.env.DATABASE_URL
+    ? DrizzleAdapter(getDb(), {
+        usersTable: users,
+        accountsTable: accounts,
+        sessionsTable: sessions,
+        verificationTokensTable: verificationTokens,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any)
+    : undefined,
   providers,
   session: { strategy: "database" },
   pages: {
