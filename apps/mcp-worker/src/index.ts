@@ -20,7 +20,7 @@ type Props = Record<string, unknown> & {
   name: string;
 };
 
-export class WebMcpHubMCP extends McpAgent<Env, {}, Props> {
+export class WebMcpHubMCP extends McpAgent<Env, object, Props> {
   server = new McpServer({
     name: "WebMCP Hub",
     version: "1.0.0",
