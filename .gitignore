@@ -1,0 +1,27 @@
+# Dependencies
+node_modules
+
+# Build outputs
+dist
+.next
+.output
+.turbo
+.wxt
+
+# TypeScript
+*.tsbuildinfo
+
+# Next.js auto-generated
+next-env.d.ts
+
+# Environment
+.env
+.env.local
+.env.*.local
+!.env.local.example
+
+# OS
+.DS_Store
+
+# Logs / local tooling
+.vercel

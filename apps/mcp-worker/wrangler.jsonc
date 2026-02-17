@@ -1,0 +1,38 @@
+{
+  "name": "webmcp-hub-mcp",
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "src/index.ts",
+
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "MCP_OBJECT",
+        "class_name": "WebMcpHubMCP"
+      }
+    ]
+  },
+
+  "kv_namespaces": [
+    {
+      "binding": "OAUTH_KV",
+      "id": "0021f512632a4b90b630beb2edc9e39a"
+    }
+  ],
+
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["WebMcpHubMCP"]
+    }
+  ],
+
+  "vars": {
+    "HUB_URL": "https://webmcp-hub.com"
+  }
+
+  // Secrets (set via `wrangler secret put`):
+  //   GITHUB_CLIENT_ID
+  //   GITHUB_CLIENT_SECRET
+  //   COOKIE_ENCRYPTION_KEY
+}

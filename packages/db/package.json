@@ -1,0 +1,34 @@
+{
+  "name": "@web-mcp-hub/db",
+  "version": "1.0.0",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:generate": "sh -c 'set -a; . ../../.env.local; set +a; drizzle-kit generate'",
+    "db:migrate": "sh -c 'set -a; . ../../.env.local; set +a; drizzle-kit migrate'",
+    "db:push": "sh -c 'set -a; . ../../.env.local; set +a; drizzle-kit push'"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.38.0",
+    "postgres": "^3.4.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.30.0",
+    "vitest": "^4.0.18"
+  }
+}

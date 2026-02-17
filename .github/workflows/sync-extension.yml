@@ -1,0 +1,22 @@
+name: Sync Extension
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/extension/**"
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push extension subtree
+        run: |
+          git config --local credential.helper '!f() { echo "password=${{ secrets.EXTENSION_REPO_TOKEN }}"; }; f'
+          git subtree split --prefix=apps/extension -b extension-split
+          git remote add extension https://x-access-token@github.com/Joakim-Sael/webmcp-extension.git
+          git push extension extension-split:main --force
