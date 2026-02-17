@@ -339,7 +339,7 @@ export default function ContributePage() {
         </p>
         <div className="flex flex-wrap gap-3">
           <a
-            href="https://github.com/joakimsaelemyr/web-mcp-hub/blob/main/CONTRIBUTING.md"
+            href="https://github.com/Joakim-Sael/web-mcp-hub/blob/main/CONTRIBUTING.md"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-800 text-white text-sm rounded-lg hover:bg-zinc-700 transition-colors border border-zinc-700 font-medium"
