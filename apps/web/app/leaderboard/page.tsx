@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { getLeaderboard } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -42,9 +43,11 @@ export default async function LeaderboardPage() {
               </span>
 
               {entry.image ? (
-                <img
+                <Image
                   src={entry.image}
                   alt={entry.contributor}
+                  width={40}
+                  height={40}
                   className="w-10 h-10 rounded-full shrink-0"
                 />
               ) : (

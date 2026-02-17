@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { listConfigs, getStats, getLeaderboard, getConfigVoteSummaries } from "@/lib/db";
 import { IntegrationTabs } from "@/components/integration-tabs";
 
@@ -102,9 +103,11 @@ export default async function HomePage({
                 className="flex flex-col items-center gap-2 p-4 bg-zinc-900 border border-zinc-800 rounded-lg"
               >
                 {entry.image ? (
-                  <img
+                  <Image
                     src={entry.image}
                     alt={entry.contributor}
+                    width={48}
+                    height={48}
                     className="w-12 h-12 rounded-full"
                   />
                 ) : (
