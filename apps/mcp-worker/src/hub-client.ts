@@ -105,7 +105,10 @@ export async function voteOnTool(
   });
   const body = await res.json();
   if (!res.ok) {
-    return { error: (body as { error?: string }).error ?? JSON.stringify(body), status: res.status };
+    return {
+      error: (body as { error?: string }).error ?? JSON.stringify(body),
+      status: res.status,
+    };
   }
   return { result: body as VoteResult, status: 200 };
 }

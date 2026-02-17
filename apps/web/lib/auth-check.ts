@@ -13,7 +13,9 @@ type AuthResult =
 const githubTokenCache = new Map<string, { userId: string; login: string; expiresAt: number }>();
 const GITHUB_TOKEN_TTL = 5 * 60 * 1000; // 5 minutes
 
-async function validateGitHubToken(token: string): Promise<{ userId: string; login: string } | null> {
+async function validateGitHubToken(
+  token: string,
+): Promise<{ userId: string; login: string } | null> {
   // Check cache first
   const cached = githubTokenCache.get(token);
   if (cached && cached.expiresAt > Date.now()) {
@@ -32,7 +34,13 @@ async function validateGitHubToken(token: string): Promise<{ userId: string; log
 
   if (!ghRes.ok) return null;
 
-  const ghUser = (await ghRes.json()) as { id: number; login: string; name: string | null; avatar_url: string; email: string | null };
+  const ghUser = (await ghRes.json()) as {
+    id: number;
+    login: string;
+    name: string | null;
+    avatar_url: string;
+    email: string | null;
+  };
   const githubId = String(ghUser.id);
 
   const db = getDb();
@@ -44,7 +52,11 @@ async function validateGitHubToken(token: string): Promise<{ userId: string; log
     .where(and(eq(accounts.provider, "github"), eq(accounts.providerAccountId, githubId)));
 
   if (existingAccount) {
-    githubTokenCache.set(token, { userId: existingAccount.userId, login: ghUser.login, expiresAt: Date.now() + GITHUB_TOKEN_TTL });
+    githubTokenCache.set(token, {
+      userId: existingAccount.userId,
+      login: ghUser.login,
+      expiresAt: Date.now() + GITHUB_TOKEN_TTL,
+    });
     return { userId: existingAccount.userId, login: ghUser.login };
   }
 
@@ -67,7 +79,11 @@ async function validateGitHubToken(token: string): Promise<{ userId: string; log
     access_token: token,
   });
 
-  githubTokenCache.set(token, { userId: newUser.id, login: ghUser.login, expiresAt: Date.now() + GITHUB_TOKEN_TTL });
+  githubTokenCache.set(token, {
+    userId: newUser.id,
+    login: ghUser.login,
+    expiresAt: Date.now() + GITHUB_TOKEN_TTL,
+  });
   return { userId: newUser.id, login: ghUser.login };
 }
 
@@ -79,7 +95,12 @@ export async function checkAuth(request: NextRequest): Promise<AuthResult> {
     const token = authHeader.slice(7); // "GitHub ".length
     const result = await validateGitHubToken(token);
     if (result) {
-      return { authenticated: true, userId: result.userId, source: "github-token", githubLogin: result.login };
+      return {
+        authenticated: true,
+        userId: result.userId,
+        source: "github-token",
+        githubLogin: result.login,
+      };
     }
     return {
       authenticated: false,

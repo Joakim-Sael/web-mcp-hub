@@ -179,9 +179,7 @@ export const toolDescriptorSchema = z
   })
   .superRefine((tool, ctx) => {
     if (!tool.execution) return;
-    const schemaProps = Object.keys(
-      (tool.inputSchema.properties as Record<string, unknown>) ?? {},
-    );
+    const schemaProps = Object.keys((tool.inputSchema.properties as Record<string, unknown>) ?? {});
 
     // Validate execution field names map to inputSchema properties
     if (tool.execution.fields) {
@@ -218,7 +216,8 @@ export const toolDescriptorSchema = z
         const basePath = ["execution", "steps", i];
         if (typeof step.url === "string") checkTemplates(step.url, [...basePath, "url"]);
         if (typeof step.value === "string") checkTemplates(step.value, [...basePath, "value"]);
-        if (typeof step.selector === "string") checkTemplates(step.selector, [...basePath, "selector"]);
+        if (typeof step.selector === "string")
+          checkTemplates(step.selector, [...basePath, "selector"]);
       }
     }
   });
@@ -229,10 +228,7 @@ function normalizeUrlPattern(val: string): string {
 }
 
 /** Refine a tools array to reject duplicate tool names */
-const uniqueToolNames = (
-  tools: z.infer<typeof toolDescriptorSchema>[],
-  ctx: z.RefinementCtx,
-) => {
+const uniqueToolNames = (tools: z.infer<typeof toolDescriptorSchema>[], ctx: z.RefinementCtx) => {
   const seen = new Set<string>();
   for (let i = 0; i < tools.length; i++) {
     if (seen.has(tools[i].name)) {
@@ -247,7 +243,10 @@ const uniqueToolNames = (
 };
 
 export const createConfigSchema = z.object({
-  domain: z.string().min(1).transform((d) => d.toLowerCase().replace(/^www\./, "")),
+  domain: z
+    .string()
+    .min(1)
+    .transform((d) => d.toLowerCase().replace(/^www\./, "")),
   urlPattern: z.string().min(1).transform(normalizeUrlPattern),
   pageType: z.string().optional(),
   title: z.string().min(1),

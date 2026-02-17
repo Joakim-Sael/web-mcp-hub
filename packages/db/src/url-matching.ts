@@ -70,11 +70,7 @@ interface MatchResult {
  *
  * The number of segments must match exactly unless a ** wildcard is used.
  */
-function matchUrlPattern(
-  urlPattern: string,
-  actualUrl: string,
-  domain: string,
-): MatchResult {
+function matchUrlPattern(urlPattern: string, actualUrl: string, domain: string): MatchResult {
   const patternPath = extractPath(urlPattern, domain);
   const urlPath = normalizeUrlToPath(actualUrl);
 

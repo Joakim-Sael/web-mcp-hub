@@ -91,9 +91,7 @@ describe("deriveInputSchema — select fields", () => {
   });
 
   it("handles select without options (dynamic)", () => {
-    const schema = derive([
-      { ...base, type: "select" as const, dynamicOptions: true },
-    ]);
+    const schema = derive([{ ...base, type: "select" as const, dynamicOptions: true }]);
     expect(schema.properties.field.type).toBe("string");
     expect(schema.properties.field.enum).toBeUndefined();
     expect(schema.properties.field.oneOf).toBeUndefined();
@@ -188,9 +186,7 @@ describe("deriveInputSchema — output structure", () => {
   });
 
   it("includes description from field", () => {
-    const schema = derive([
-      { ...base, type: "text", description: "Enter your name" },
-    ]);
+    const schema = derive([{ ...base, type: "text", description: "Enter your name" }]);
     expect(schema.properties.field.description).toBe("Enter your name");
   });
 
@@ -198,7 +194,13 @@ describe("deriveInputSchema — output structure", () => {
     const schema = derive([
       { selector: "#a", name: "firstName", description: "First name", type: "text" as const },
       { selector: "#b", name: "age", description: "Your age", type: "number" as const },
-      { selector: "#c", name: "agree", description: "Accept terms", type: "checkbox" as const, required: false },
+      {
+        selector: "#c",
+        name: "agree",
+        description: "Accept terms",
+        type: "checkbox" as const,
+        required: false,
+      },
     ]);
 
     expect(Object.keys(schema.properties)).toEqual(["firstName", "age", "agree"]);

@@ -19,9 +19,7 @@ export default async function HomePage({
     getLeaderboard(5),
   ]);
 
-  const allConfigIds = [
-    ...new Set([...configs.map((c) => c.id), ...featured.map((c) => c.id)]),
-  ];
+  const allConfigIds = [...new Set([...configs.map((c) => c.id), ...featured.map((c) => c.id)])];
   const voteScores = await getConfigVoteSummaries(allConfigIds);
 
   const totalPages = Math.ceil(total / pageSize);
@@ -86,9 +84,7 @@ export default async function HomePage({
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-2xl font-bold text-white mb-1">Top contributors</h2>
-              <p className="text-zinc-400">
-                Community members powering the registry.
-              </p>
+              <p className="text-zinc-400">Community members powering the registry.</p>
             </div>
             <Link
               href="/leaderboard"

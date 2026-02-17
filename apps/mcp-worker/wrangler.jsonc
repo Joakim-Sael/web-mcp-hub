@@ -8,28 +8,28 @@
     "bindings": [
       {
         "name": "MCP_OBJECT",
-        "class_name": "WebMcpHubMCP"
-      }
-    ]
+        "class_name": "WebMcpHubMCP",
+      },
+    ],
   },
 
   "kv_namespaces": [
     {
       "binding": "OAUTH_KV",
-      "id": "0021f512632a4b90b630beb2edc9e39a"
-    }
+      "id": "0021f512632a4b90b630beb2edc9e39a",
+    },
   ],
 
   "migrations": [
     {
       "tag": "v1",
-      "new_sqlite_classes": ["WebMcpHubMCP"]
-    }
+      "new_sqlite_classes": ["WebMcpHubMCP"],
+    },
   ],
 
   "vars": {
-    "HUB_URL": "https://webmcp-hub.com"
-  }
+    "HUB_URL": "https://webmcp-hub.com",
+  },
 
   // Secrets (set via `wrangler secret put`):
   //   GITHUB_CLIENT_ID

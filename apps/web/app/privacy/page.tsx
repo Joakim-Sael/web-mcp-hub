@@ -14,16 +14,14 @@ export default function PrivacyPage() {
         <section>
           <h2 className="text-xl font-semibold text-white mb-3">Overview</h2>
           <p>
-            WebMCP Hub is an open community registry of WebMCP configurations for AI agents.
-            This policy covers both the WebMCP Hub website (<strong>webmcp-hub.com</strong>) and
-            the <strong>WebMCP Hub Chrome extension</strong>.
+            WebMCP Hub is an open community registry of WebMCP configurations for AI agents. This
+            policy covers both the WebMCP Hub website (<strong>webmcp-hub.com</strong>) and the{" "}
+            <strong>WebMCP Hub Chrome extension</strong>.
           </p>
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-white mb-3">
-            What the Chrome extension does
-          </h2>
+          <h2 className="text-xl font-semibold text-white mb-3">What the Chrome extension does</h2>
           <p className="mb-3">
             The extension registers WebMCP tool definitions on web pages so that AI agents can
             interact with websites through structured tools instead of screen scraping.
@@ -38,8 +36,8 @@ export default function PrivacyPage() {
         <section>
           <h2 className="text-xl font-semibold text-white mb-3">Data collected by the extension</h2>
           <p className="mb-3">
-            When you navigate to a web page, the extension sends the following to the WebMCP Hub
-            API to check for matching configurations:
+            When you navigate to a web page, the extension sends the following to the WebMCP Hub API
+            to check for matching configurations:
           </p>
           <ul className="list-disc pl-6 space-y-1">
             <li>
@@ -51,7 +49,9 @@ export default function PrivacyPage() {
               <code className="text-zinc-400">/dashboard/settings</code>)
             </li>
           </ul>
-          <p className="mt-3">The extension does <strong>not</strong> collect or transmit:</p>
+          <p className="mt-3">
+            The extension does <strong>not</strong> collect or transmit:
+          </p>
           <ul className="list-disc pl-6 space-y-1">
             <li>Page content, form data, or any data you enter on websites</li>
             <li>Cookies, authentication tokens, or session data</li>
@@ -110,18 +110,16 @@ export default function PrivacyPage() {
               <strong>GitHub OAuth</strong> — Authentication for contributors
             </li>
           </ul>
-          <p className="mt-3">
-            We do not use analytics, tracking pixels, or advertising services.
-          </p>
+          <p className="mt-3">We do not use analytics, tracking pixels, or advertising services.</p>
         </section>
 
         <section>
           <h2 className="text-xl font-semibold text-white mb-3">Data retention</h2>
           <p>
             Configuration data in the registry is retained as long as the registry operates.
-            Contributors can request removal of their submitted configurations at any time.
-            The extension does not persist any browsing data — all lookup data is session-scoped
-            and cleared when the tab closes.
+            Contributors can request removal of their submitted configurations at any time. The
+            extension does not persist any browsing data — all lookup data is session-scoped and
+            cleared when the tab closes.
           </p>
         </section>
 
@@ -132,8 +130,8 @@ export default function PrivacyPage() {
               You can <strong>uninstall the extension</strong> at any time to stop all lookups
             </li>
             <li>
-              You can <strong>change the hub URL</strong> via the extension popup settings if
-              you want to use an alternative registry
+              You can <strong>change the hub URL</strong> via the extension popup settings if you
+              want to use an alternative registry
             </li>
             <li>
               You can <strong>delete your account</strong> and contributed configurations by
@@ -145,17 +143,17 @@ export default function PrivacyPage() {
         <section>
           <h2 className="text-xl font-semibold text-white mb-3">Changes to this policy</h2>
           <p>
-            We may update this policy as the project evolves. Significant changes will be noted
-            in the extension&apos;s changelog. Continued use of the extension or website after
-            changes constitutes acceptance of the updated policy.
+            We may update this policy as the project evolves. Significant changes will be noted in
+            the extension&apos;s changelog. Continued use of the extension or website after changes
+            constitutes acceptance of the updated policy.
           </p>
         </section>
 
         <section>
           <h2 className="text-xl font-semibold text-white mb-3">Contact</h2>
           <p className="mb-3">
-            If you have questions about this policy or want to request data removal, reach out
-            via email:{" "}
+            If you have questions about this policy or want to request data removal, reach out via
+            email:{" "}
             <a
               href="mailto:joakim.selemyr16@gmail.com"
               className="text-blue-400 hover:text-blue-300 underline"
@@ -164,8 +162,8 @@ export default function PrivacyPage() {
             </a>
           </p>
           <p className="text-zinc-400 text-sm">
-            A public GitHub repository is coming soon — once open-sourced you will also be able
-            to open issues there.
+            A public GitHub repository is coming soon — once open-sourced you will also be able to
+            open issues there.
           </p>
         </section>
       </div>

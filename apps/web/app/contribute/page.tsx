@@ -124,8 +124,9 @@ export default function ContributePage() {
           <Link href="/settings" className="text-blue-400 hover:text-blue-300">
             Settings
           </Link>
-          . Keys start with <code className="bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-300">whub_</code>.
-          All read endpoints are public — no key needed to browse or look up configs.
+          . Keys start with{" "}
+          <code className="bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-300">whub_</code>. All read
+          endpoints are public — no key needed to browse or look up configs.
         </p>
       </div>
 
@@ -169,22 +170,30 @@ export default function ContributePage() {
                 </div>
                 <div className="flex items-baseline gap-2">
                   <code className="text-emerald-400 text-xs w-11 shrink-0">GET</code>
-                  <code className="text-zinc-300 text-xs">https://webmcp-hub.com/api/configs/lookup</code>
+                  <code className="text-zinc-300 text-xs">
+                    https://webmcp-hub.com/api/configs/lookup
+                  </code>
                   <span className="text-zinc-500 text-xs">Lookup by domain</span>
                 </div>
                 <div className="flex items-baseline gap-2">
                   <code className="text-emerald-400 text-xs w-11 shrink-0">GET</code>
-                  <code className="text-zinc-300 text-xs">https://webmcp-hub.com/api/configs/:id</code>
+                  <code className="text-zinc-300 text-xs">
+                    https://webmcp-hub.com/api/configs/:id
+                  </code>
                   <span className="text-zinc-500 text-xs">Get by ID</span>
                 </div>
                 <div className="flex items-baseline gap-2">
                   <code className="text-amber-400 text-xs w-11 shrink-0">PATCH</code>
-                  <code className="text-zinc-300 text-xs">https://webmcp-hub.com/api/configs/:id</code>
+                  <code className="text-zinc-300 text-xs">
+                    https://webmcp-hub.com/api/configs/:id
+                  </code>
                   <span className="text-zinc-500 text-xs">Update</span>
                 </div>
                 <div className="flex items-baseline gap-2">
                   <code className="text-blue-400 text-xs w-11 shrink-0">POST</code>
-                  <code className="text-zinc-300 text-xs">https://webmcp-hub.com/api/configs/:id/vote</code>
+                  <code className="text-zinc-300 text-xs">
+                    https://webmcp-hub.com/api/configs/:id/vote
+                  </code>
                   <span className="text-zinc-500 text-xs">Vote on tool</span>
                 </div>
               </div>
@@ -204,7 +213,8 @@ export default function ContributePage() {
             <p className="text-sm text-zinc-400 mt-1">
               Connect the MCP server to your AI agent and use{" "}
               <code className="text-zinc-300">upload_config</code> and{" "}
-              <code className="text-zinc-300">update_config</code> to submit configs conversationally.
+              <code className="text-zinc-300">update_config</code> to submit configs
+              conversationally.
             </p>
           </div>
           <div className="p-5 space-y-4">
@@ -225,8 +235,8 @@ export default function ContributePage() {
             <p className="text-sm text-zinc-400">
               Your AI agent will use <code className="text-zinc-300">upload_config</code>,{" "}
               <code className="text-zinc-300">update_config</code>, and{" "}
-              <code className="text-zinc-300">vote_on_tool</code> automatically when you
-              ask it to contribute, modify, or rate configs.
+              <code className="text-zinc-300">vote_on_tool</code> automatically when you ask it to
+              contribute, modify, or rate configs.
             </p>
           </div>
         </div>
@@ -320,7 +330,9 @@ export default function ContributePage() {
 
       {/* Contribute to the project */}
       <section className="border-t border-zinc-800 pt-8">
-        <h2 className="text-lg font-semibold text-white mb-2">Want to contribute to the project?</h2>
+        <h2 className="text-lg font-semibold text-white mb-2">
+          Want to contribute to the project?
+        </h2>
         <p className="text-sm text-zinc-400 mb-4">
           Beyond submitting configs, you can help improve the hub itself — fix bugs, add features,
           improve docs, or extend the Chrome extension and MCP server.

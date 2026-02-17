@@ -49,4 +49,12 @@ export { describeExecution, formatToolExecution, formatConfig } from "./format.j
 export { getDb } from "./client.js";
 export type { Database } from "./client.js";
 
-export { configs, users, accounts, sessions, verificationTokens, apiKeys, configVotes } from "./schema.js";
+export {
+  configs,
+  users,
+  accounts,
+  sessions,
+  verificationTokens,
+  apiKeys,
+  configVotes,
+} from "./schema.js";

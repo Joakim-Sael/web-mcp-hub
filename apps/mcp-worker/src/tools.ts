@@ -32,7 +32,9 @@ const executionSchema = z
           required: z.boolean().optional(),
           defaultValue: z.union([z.string(), z.number(), z.boolean()]).optional(),
           options: z
-            .array(z.object({ value: z.string(), label: z.string(), selector: z.string().optional() }))
+            .array(
+              z.object({ value: z.string(), label: z.string(), selector: z.string().optional() }),
+            )
             .optional(),
           dynamicOptions: z.boolean().optional(),
         }),
@@ -95,10 +97,19 @@ export function registerTools(agent: AgentLike, hubOpts: HubClientOptions): void
     "list_configs",
     "Browse and search all WebMCP configs in the hub.",
     {
-      search: z.string().optional().describe("Search term to filter by domain, title, or description"),
+      search: z
+        .string()
+        .optional()
+        .describe("Search term to filter by domain, title, or description"),
       tag: z.string().optional().describe("Filter by tag"),
       page: z.number().int().min(1).optional().describe("Page number (default 1)"),
-      pageSize: z.number().int().min(1).max(100).optional().describe("Results per page (default 20)"),
+      pageSize: z
+        .number()
+        .int()
+        .min(1)
+        .max(100)
+        .optional()
+        .describe("Results per page (default 20)"),
     },
     async ({ search, tag, page, pageSize }) => {
       try {
@@ -211,7 +222,9 @@ Use this to signal quality: upvote tools that work well, downvote ones that are 
       vote: z
         .number()
         .int()
-        .describe("1 for upvote, -1 for downvote. Voting the same direction again removes the vote."),
+        .describe(
+          "1 for upvote, -1 for downvote. Voting the same direction again removes the vote.",
+        ),
     },
     async ({ configId, toolName, vote }) => {
       if (vote !== 1 && vote !== -1) {
@@ -231,7 +244,8 @@ Use this to signal quality: upvote tools that work well, downvote ones that are 
         }
 
         const r = result.result!;
-        const voteLabel = r.userVote === 1 ? "upvoted" : r.userVote === -1 ? "downvoted" : "removed vote";
+        const voteLabel =
+          r.userVote === 1 ? "upvoted" : r.userVote === -1 ? "downvoted" : "removed vote";
         return {
           content: [
             {

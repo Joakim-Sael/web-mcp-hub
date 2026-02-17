@@ -356,10 +356,7 @@ export async function upsertToolVote(
   );
 
   // Check for existing vote
-  const [existing] = await db
-    .select({ vote: configVotes.vote })
-    .from(configVotes)
-    .where(where);
+  const [existing] = await db.select({ vote: configVotes.vote }).from(configVotes).where(where);
 
   if (existing) {
     if (existing.vote === vote) {
@@ -377,9 +374,7 @@ export async function upsertToolVote(
   }
 }
 
-export async function getConfigVoteSummaries(
-  configIds: string[],
-): Promise<Record<string, number>> {
+export async function getConfigVoteSummaries(configIds: string[]): Promise<Record<string, number>> {
   if (configIds.length === 0) return {};
 
   const db = getDb();

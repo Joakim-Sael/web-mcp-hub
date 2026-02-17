@@ -171,9 +171,7 @@ describe("toolDescriptorSchema", () => {
         execution: {
           selector: "#searchForm",
           autosubmit: true,
-          fields: [
-            { type: "text", selector: "#q", name: "query", description: "Search" },
-          ],
+          fields: [{ type: "text", selector: "#q", name: "query", description: "Search" }],
         },
       }),
     );
@@ -186,9 +184,7 @@ describe("toolDescriptorSchema", () => {
         execution: {
           selector: "#searchForm",
           autosubmit: true,
-          fields: [
-            { type: "text", selector: "#q", name: "nonexistent", description: "Bad" },
-          ],
+          fields: [{ type: "text", selector: "#q", name: "nonexistent", description: "Bad" }],
         },
       }),
     );
@@ -207,9 +203,7 @@ describe("toolDescriptorSchema", () => {
         execution: {
           selector: "#form",
           autosubmit: false,
-          steps: [
-            { action: "fill", selector: "#input", value: "{{query}}" },
-          ],
+          steps: [{ action: "fill", selector: "#input", value: "{{query}}" }],
         },
       }),
     );
@@ -222,9 +216,7 @@ describe("toolDescriptorSchema", () => {
         execution: {
           selector: "#form",
           autosubmit: false,
-          steps: [
-            { action: "fill", selector: "#input", value: "{{typo}}" },
-          ],
+          steps: [{ action: "fill", selector: "#input", value: "{{typo}}" }],
         },
       }),
     );
@@ -240,9 +232,7 @@ describe("toolDescriptorSchema", () => {
         execution: {
           selector: "#form",
           autosubmit: false,
-          steps: [
-            { action: "click", selector: 'li:has-text("{{misspelled}}") .btn' },
-          ],
+          steps: [{ action: "click", selector: 'li:has-text("{{misspelled}}") .btn' }],
         },
       }),
     );
@@ -258,9 +248,7 @@ describe("toolDescriptorSchema", () => {
         execution: {
           selector: "#nav",
           autosubmit: false,
-          steps: [
-            { action: "navigate", url: "https://example.com/{{badParam}}" },
-          ],
+          steps: [{ action: "navigate", url: "https://example.com/{{badParam}}" }],
         },
       }),
     );
@@ -282,9 +270,7 @@ describe("createConfigSchema", () => {
   });
 
   it("normalizes domain to lowercase and strips www.", () => {
-    const result = createConfigSchema.safeParse(
-      validConfig({ domain: "WWW.Example.COM" }),
-    );
+    const result = createConfigSchema.safeParse(validConfig({ domain: "WWW.Example.COM" }));
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.domain).toBe("example.com");
@@ -302,9 +288,7 @@ describe("createConfigSchema", () => {
   });
 
   it("strips trailing slash from urlPattern", () => {
-    const result = createConfigSchema.safeParse(
-      validConfig({ urlPattern: "example.com/search/" }),
-    );
+    const result = createConfigSchema.safeParse(validConfig({ urlPattern: "example.com/search/" }));
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.urlPattern).toBe("example.com/search");
@@ -322,16 +306,12 @@ describe("createConfigSchema", () => {
   });
 
   it("accepts optional tags", () => {
-    const result = createConfigSchema.safeParse(
-      validConfig({ tags: ["search", "ecommerce"] }),
-    );
+    const result = createConfigSchema.safeParse(validConfig({ tags: ["search", "ecommerce"] }));
     expect(result.success).toBe(true);
   });
 
   it("accepts optional pageType", () => {
-    const result = createConfigSchema.safeParse(
-      validConfig({ pageType: "search" }),
-    );
+    const result = createConfigSchema.safeParse(validConfig({ pageType: "search" }));
     expect(result.success).toBe(true);
   });
 
@@ -340,10 +320,7 @@ describe("createConfigSchema", () => {
   it("rejects duplicate tool names", () => {
     const result = createConfigSchema.safeParse(
       validConfig({
-        tools: [
-          validTool({ name: "search" }),
-          validTool({ name: "search" }),
-        ],
+        tools: [validTool({ name: "search" }), validTool({ name: "search" })],
       }),
     );
     expect(result.success).toBe(false);
@@ -355,10 +332,7 @@ describe("createConfigSchema", () => {
   it("accepts tools with different names", () => {
     const result = createConfigSchema.safeParse(
       validConfig({
-        tools: [
-          validTool({ name: "search-products" }),
-          validTool({ name: "add-to-cart" }),
-        ],
+        tools: [validTool({ name: "search-products" }), validTool({ name: "add-to-cart" })],
       }),
     );
     expect(result.success).toBe(true);
@@ -389,10 +363,7 @@ describe("updateConfigSchema", () => {
 
   it("rejects duplicate tool names in update", () => {
     const result = updateConfigSchema.safeParse({
-      tools: [
-        validTool({ name: "same-name" }),
-        validTool({ name: "same-name" }),
-      ],
+      tools: [validTool({ name: "same-name" }), validTool({ name: "same-name" })],
     });
     expect(result.success).toBe(false);
   });
@@ -466,9 +437,7 @@ describe("toolFieldSchema", () => {
   });
 
   it("rejects radio field without options", () => {
-    expect(
-      toolFieldSchema.safeParse({ ...base, type: "radio", options: [] }).success,
-    ).toBe(false);
+    expect(toolFieldSchema.safeParse({ ...base, type: "radio", options: [] }).success).toBe(false);
   });
 
   it("rejects file field type (removed)", () => {
@@ -486,9 +455,9 @@ describe("toolFieldSchema", () => {
   });
 
   it("accepts required: false", () => {
-    expect(
-      toolFieldSchema.safeParse({ ...base, type: "text", required: false }).success,
-    ).toBe(true);
+    expect(toolFieldSchema.safeParse({ ...base, type: "text", required: false }).success).toBe(
+      true,
+    );
   });
 });
 
@@ -509,9 +478,7 @@ describe("executionDescriptorSchema", () => {
     const result = executionDescriptorSchema.safeParse({
       selector: "#form",
       autosubmit: true,
-      fields: [
-        { type: "text", selector: "#q", name: "query", description: "Search" },
-      ],
+      fields: [{ type: "text", selector: "#q", name: "query", description: "Search" }],
       submitSelector: "#submit",
     });
     expect(result.success).toBe(true);

@@ -34,7 +34,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   const toolExists = config.tools.some((t) => t.name === toolName);
   if (!toolExists) {
-    return NextResponse.json({ error: `Tool "${toolName}" not found in this config` }, { status: 404 });
+    return NextResponse.json(
+      { error: `Tool "${toolName}" not found in this config` },
+      { status: 404 },
+    );
   }
 
   await upsertToolVote(authResult.userId, id, toolName, vote);

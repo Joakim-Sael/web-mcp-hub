@@ -14,9 +14,7 @@ export default async function LeaderboardPage() {
   return (
     <section className="max-w-6xl mx-auto px-6 py-14">
       <h1 className="text-3xl font-bold text-white mb-1">Contributor Leaderboard</h1>
-      <p className="text-zinc-400 mb-8">
-        Top contributors ranked by number of configs and tools.
-      </p>
+      <p className="text-zinc-400 mb-8">Top contributors ranked by number of configs and tools.</p>
 
       {entries.length === 0 ? (
         <div className="text-center py-16">

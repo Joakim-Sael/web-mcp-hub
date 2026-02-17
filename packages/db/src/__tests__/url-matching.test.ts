@@ -38,9 +38,7 @@ describe("extractPath", () => {
 
 describe("normalizeUrlToPath", () => {
   it("extracts pathname from full URL", () => {
-    expect(normalizeUrlToPath("https://example.com/dashboard/abc?foo=bar")).toBe(
-      "/dashboard/abc",
-    );
+    expect(normalizeUrlToPath("https://example.com/dashboard/abc?foo=bar")).toBe("/dashboard/abc");
   });
 
   it("handles URL without protocol", () => {
@@ -164,11 +162,7 @@ describe("matchUrlPattern", () => {
     });
 
     it("does not match when URL has too few segments", () => {
-      const result = matchUrlPattern(
-        "example.com/users/:id",
-        "https://example.com/users",
-        domain,
-      );
+      const result = matchUrlPattern("example.com/users/:id", "https://example.com/users", domain);
       expect(result.matched).toBe(false);
     });
   });
@@ -185,11 +179,7 @@ describe("matchUrlPattern", () => {
     });
 
     it("matches the root of the wildcard path", () => {
-      const result = matchUrlPattern(
-        "example.com/admin/**",
-        "https://example.com/admin",
-        domain,
-      );
+      const result = matchUrlPattern("example.com/admin/**", "https://example.com/admin", domain);
       expect(result.matched).toBe(true);
     });
 
@@ -230,11 +220,7 @@ describe("rankConfigsByUrl", () => {
       { urlPattern: "example.com/admin/settings", name: "admin-settings-exact" },
     ];
 
-    const ranked = rankConfigsByUrl(
-      configs,
-      "https://example.com/admin/settings",
-      domain,
-    );
+    const ranked = rankConfigsByUrl(configs, "https://example.com/admin/settings", domain);
 
     expect(ranked.map((c) => c.name)).toEqual([
       "admin-settings-exact", // score 6
@@ -249,26 +235,16 @@ describe("rankConfigsByUrl", () => {
       { urlPattern: "example.com/settings", name: "settings" },
     ];
 
-    const ranked = rankConfigsByUrl(
-      configs,
-      "https://example.com/dashboard",
-      domain,
-    );
+    const ranked = rankConfigsByUrl(configs, "https://example.com/dashboard", domain);
 
     expect(ranked).toHaveLength(1);
     expect(ranked[0].name).toBe("dashboard");
   });
 
   it("returns empty array when nothing matches", () => {
-    const configs = [
-      { urlPattern: "example.com/admin", name: "admin" },
-    ];
+    const configs = [{ urlPattern: "example.com/admin", name: "admin" }];
 
-    const ranked = rankConfigsByUrl(
-      configs,
-      "https://example.com/user/profile",
-      domain,
-    );
+    const ranked = rankConfigsByUrl(configs, "https://example.com/user/profile", domain);
 
     expect(ranked).toEqual([]);
   });
@@ -279,11 +255,7 @@ describe("rankConfigsByUrl", () => {
       { urlPattern: "example.com/users/me", name: "static" },
     ];
 
-    const ranked = rankConfigsByUrl(
-      configs,
-      "https://example.com/users/me",
-      domain,
-    );
+    const ranked = rankConfigsByUrl(configs, "https://example.com/users/me", domain);
 
     expect(ranked[0].name).toBe("static"); // score 6 vs 5
     expect(ranked[1].name).toBe("dynamic");
@@ -295,11 +267,7 @@ describe("rankConfigsByUrl", () => {
       { urlPattern: "example.com/page", name: "specific" },
     ];
 
-    const ranked = rankConfigsByUrl(
-      configs,
-      "https://example.com/page",
-      domain,
-    );
+    const ranked = rankConfigsByUrl(configs, "https://example.com/page", domain);
 
     expect(ranked[0].name).toBe("specific");
     expect(ranked[ranked.length - 1].name).toBe("fallback");

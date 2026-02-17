@@ -7,11 +7,7 @@ export function SignInButton() {
   const { data: session, status } = useSession();
 
   if (status === "loading") {
-    return (
-      <div className="text-sm px-3 py-1.5 text-zinc-500">
-        Loading...
-      </div>
-    );
+    return <div className="text-sm px-3 py-1.5 text-zinc-500">Loading...</div>;
   }
 
   if (session?.user) {

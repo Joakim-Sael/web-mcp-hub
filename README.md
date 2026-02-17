@@ -160,16 +160,16 @@ Then ask your AI agent to contribute a config — it will use the `upload_config
 
 ### Config structure
 
-| Field | Required | Description |
-| --- | --- | --- |
-| `domain` | Yes | Normalized domain, e.g. `github.com` |
-| `urlPattern` | Yes | URL scope — `github.com` (all pages), `github.com/search` (exact), `github.com/:owner/:repo/issues` (dynamic), `github.com/admin/**` (wildcard) |
-| `title` | Yes | Human-readable name |
-| `description` | Yes | What the config enables agents to do |
-| `contributor` | Yes | Your name or GitHub username |
-| `tools` | Yes | Array of tool descriptors (at least one) |
-| `tags` | No | Categorization tags, e.g. `["search", "devtools"]` |
-| `pageType` | No | Page type hint: `search`, `form`, `dashboard`, `feed`, etc. |
+| Field         | Required | Description                                                                                                                                     |
+| ------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `domain`      | Yes      | Normalized domain, e.g. `github.com`                                                                                                            |
+| `urlPattern`  | Yes      | URL scope — `github.com` (all pages), `github.com/search` (exact), `github.com/:owner/:repo/issues` (dynamic), `github.com/admin/**` (wildcard) |
+| `title`       | Yes      | Human-readable name                                                                                                                             |
+| `description` | Yes      | What the config enables agents to do                                                                                                            |
+| `contributor` | Yes      | Your name or GitHub username                                                                                                                    |
+| `tools`       | Yes      | Array of tool descriptors (at least one)                                                                                                        |
+| `tags`        | No       | Categorization tags, e.g. `["search", "devtools"]`                                                                                              |
+| `pageType`    | No       | Page type hint: `search`, `form`, `dashboard`, `feed`, etc.                                                                                     |
 
 Each tool needs `name` (kebab-case verb, e.g. `search-repos`), `description`, and a valid JSON Schema `inputSchema`. Optionally add `execution` metadata so the Chrome extension can run the tool automatically via CSS selectors.
 

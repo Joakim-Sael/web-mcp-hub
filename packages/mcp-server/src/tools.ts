@@ -12,16 +12,7 @@ const executionSchema = z
       .array(
         z.object({
           type: z
-            .enum([
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "checkbox",
-              "radio",
-              "date",
-              "hidden",
-            ])
+            .enum(["text", "number", "textarea", "select", "checkbox", "radio", "date", "hidden"])
             .describe("Field type"),
           selector: z.string().describe("CSS selector for the input element"),
           name: z.string().describe("Parameter name matching inputSchema property"),
@@ -62,17 +53,31 @@ const executionSchema = z
     resultAttribute: z
       .string()
       .optional()
-      .describe("HTML attribute name to read when resultExtract is 'attribute', e.g. 'href', 'data-id'"),
+      .describe(
+        "HTML attribute name to read when resultExtract is 'attribute', e.g. 'href', 'data-id'",
+      ),
     steps: z
       .array(
         z
           .object({
             action: z
-              .enum(["navigate", "click", "fill", "select", "wait", "extract", "scroll", "condition"])
+              .enum([
+                "navigate",
+                "click",
+                "fill",
+                "select",
+                "wait",
+                "extract",
+                "scroll",
+                "condition",
+              ])
               .describe("The action type for this step"),
             selector: z.string().optional().describe("CSS selector (required for most actions)"),
             url: z.string().optional().describe("URL for navigate steps, supports {{paramName}}"),
-            value: z.string().optional().describe("Value for fill/select steps, supports {{paramName}}"),
+            value: z
+              .string()
+              .optional()
+              .describe("Value for fill/select steps, supports {{paramName}}"),
             state: z
               .enum(["visible", "exists", "hidden"])
               .optional()
@@ -82,16 +87,23 @@ const executionSchema = z
               .enum(["text", "html", "list", "table", "attribute"])
               .optional()
               .describe("Extraction mode for extract steps"),
-            attribute: z.string().optional().describe("Attribute name for extract steps with extract:'attribute'"),
-            then: z.array(z.record(z.string(), z.unknown())).optional().describe("Steps to run if condition matches"),
-            else: z.array(z.record(z.string(), z.unknown())).optional().describe("Steps to run if condition does not match"),
+            attribute: z
+              .string()
+              .optional()
+              .describe("Attribute name for extract steps with extract:'attribute'"),
+            then: z
+              .array(z.record(z.string(), z.unknown()))
+              .optional()
+              .describe("Steps to run if condition matches"),
+            else: z
+              .array(z.record(z.string(), z.unknown()))
+              .optional()
+              .describe("Steps to run if condition does not match"),
           })
           .passthrough(),
       )
       .optional()
-      .describe(
-        "Multi-step workflow (overrides simple mode). Array of action steps.",
-      ),
+      .describe("Multi-step workflow (overrides simple mode). Array of action steps."),
     resultDelay: z.number().optional().describe("Milliseconds to wait before reading result"),
     resultWaitSelector: z
       .string()
@@ -360,11 +372,18 @@ Maps tool parameters to DOM elements via CSS selectors. Two modes:
                     z
                       .object({ type: z.string() })
                       .passthrough()
-                      .describe("Each property must be a schema object with at least a 'type' field"),
+                      .describe(
+                        "Each property must be a schema object with at least a 'type' field",
+                      ),
                   )
                   .default({})
-                  .describe("Property definitions — each value must be a schema object like {type:'string',description:'...'}"),
-                required: z.array(z.string()).optional().describe("List of required property names"),
+                  .describe(
+                    "Property definitions — each value must be a schema object like {type:'string',description:'...'}",
+                  ),
+                required: z
+                  .array(z.string())
+                  .optional()
+                  .describe("List of required property names"),
               })
               .passthrough()
               .describe(
@@ -441,7 +460,9 @@ Use this to signal quality: upvote tools that work well, downvote ones that are 
       vote: z
         .number()
         .int()
-        .describe("1 for upvote, -1 for downvote. Voting the same direction again removes the vote."),
+        .describe(
+          "1 for upvote, -1 for downvote. Voting the same direction again removes the vote.",
+        ),
     },
     { idempotentHint: true },
     async ({ configId, toolName, vote }) => {
@@ -462,7 +483,8 @@ Use this to signal quality: upvote tools that work well, downvote ones that are 
         }
 
         const r = result.result!;
-        const voteLabel = r.userVote === 1 ? "upvoted" : r.userVote === -1 ? "downvoted" : "removed vote";
+        const voteLabel =
+          r.userVote === 1 ? "upvoted" : r.userVote === -1 ? "downvoted" : "removed vote";
         return {
           content: [
             {
@@ -502,14 +524,11 @@ See upload_config for full schema rules, execution metadata docs, and examples.`
               .object({
                 type: z.literal("object").describe("Must be 'object'"),
                 properties: z
-                  .record(
-                    z.string(),
-                    z
-                      .object({ type: z.string() })
-                      .passthrough(),
-                  )
+                  .record(z.string(), z.object({ type: z.string() }).passthrough())
                   .default({})
-                  .describe("Property definitions — each value must be a schema object with a 'type' field"),
+                  .describe(
+                    "Property definitions — each value must be a schema object with a 'type' field",
+                  ),
                 required: z.array(z.string()).optional(),
               })
               .passthrough()
