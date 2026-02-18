@@ -20,6 +20,8 @@ export type LeaderboardEntry = {
 };
 
 function rowToConfig(row: typeof configs.$inferSelect): WebMcpConfig {
+  const vMap = row.verifiedTools ?? {};
+  const allVerified = row.tools.length > 0 && row.tools.every((t) => t.name in vMap);
   return {
     id: row.id,
     domain: row.domain,
@@ -30,7 +32,7 @@ function rowToConfig(row: typeof configs.$inferSelect): WebMcpConfig {
     tools: row.tools,
     contributor: row.contributor,
     version: row.version,
-    verified: row.verified === 1,
+    verified: allVerified,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
     tags: row.tags ?? undefined,
@@ -38,9 +40,24 @@ function rowToConfig(row: typeof configs.$inferSelect): WebMcpConfig {
 }
 
 function rowToVerifiedConfig(row: typeof configs.$inferSelect): WebMcpConfig {
+  const vMap = row.verifiedTools ?? {};
+  // Only include tools that have a verified snapshot, using the snapshot version
+  const verifiedTools = row.tools.filter((t) => t.name in vMap).map((t) => vMap[t.name]);
+  const allVerified = row.tools.length > 0 && row.tools.every((t) => t.name in vMap);
   return {
-    ...rowToConfig(row),
-    tools: row.verifiedTools ?? row.tools,
+    id: row.id,
+    domain: row.domain,
+    urlPattern: row.urlPattern,
+    pageType: row.pageType ?? undefined,
+    title: row.title,
+    description: row.description,
+    tools: verifiedTools,
+    contributor: row.contributor,
+    version: row.version,
+    verified: allVerified,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+    tags: row.tags ?? undefined,
   };
 }
 
@@ -64,7 +81,9 @@ export async function listConfigs(opts: {
   const conditions = [];
 
   if (!yolo) {
-    conditions.push(sql`${configs.verifiedTools} IS NOT NULL`);
+    conditions.push(
+      sql`${configs.verifiedTools} IS NOT NULL AND ${configs.verifiedTools} != '{}'::jsonb`,
+    );
   }
 
   if (opts.search) {
@@ -118,7 +137,9 @@ export async function lookupByDomain(
     conditions.push(eq(configs.hasExecution, 1));
   }
   if (!yolo) {
-    conditions.push(sql`${configs.verifiedTools} IS NOT NULL`);
+    conditions.push(
+      sql`${configs.verifiedTools} IS NOT NULL AND ${configs.verifiedTools} != '{}'::jsonb`,
+    );
   }
 
   // Fetch all configs for this domain
@@ -177,7 +198,6 @@ export async function createConfig(input: CreateConfigInput): Promise<WebMcpConf
       version: 1,
       tags: input.tags ?? null,
       hasExecution,
-      verified: 0,
       verifiedTools: null,
       createdAt: now,
       updatedAt: now,
@@ -197,7 +217,6 @@ export async function updateConfig(
 
   const updates: Record<string, unknown> = {
     version: sql`${configs.version} + 1`,
-    verified: 0,
     updatedAt: new Date(),
   };
 
