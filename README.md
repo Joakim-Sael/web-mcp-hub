@@ -201,6 +201,28 @@ Authentication is optional — all read endpoints remain public. When configured
    ```
 4. The MCP server will automatically send the key on write requests
 
+## Tool verification
+
+All newly submitted tools start as **unverified** and are hidden from default API and MCP responses. This protects consumers from running untrusted tool definitions.
+
+### How it works
+
+- An admin verifies individual tools via the Supabase dashboard by adding entries to the `verifiedTools` JSONB column on the config row. Each key is a tool name and the value is a snapshot of the tool at the time of verification.
+- Verified tool snapshots persist when a config is updated — only the tools in the snapshot are served to consumers, so an update cannot silently change a verified tool's behavior.
+- The hub UI shows verification status: config cards display a **"X verified"** badge, the detail page shows a **Verified / Unverified** chip in the header, and each tool card shows a green **verified** badge if applicable.
+
+### Viewing unverified tools
+
+By default, list and lookup endpoints only return configs that have at least one verified tool, and only the verified tool snapshots are included. To see everything (including unverified tools), pass `yolo=true`:
+
+```bash
+# API
+curl "https://webmcp-hub.com/api/configs?yolo=true"
+curl "https://webmcp-hub.com/api/configs/lookup?domain=example.com&yolo=true"
+```
+
+The `yolo` parameter is also available on the MCP server's `lookup_config` and `list_configs` tools.
+
 ## Development
 
 ```bash
@@ -227,16 +249,16 @@ For testing, install the [Model Context Tool Inspector](https://chromewebstore.g
 
 All endpoints are served by the Next.js app on port 3000.
 
-| Method  | Path                       | Description                                               |
-| ------- | -------------------------- | --------------------------------------------------------- |
-| `GET`   | `/api/configs`             | List configs (query: `search`, `tag`, `page`, `pageSize`) |
-| `POST`  | `/api/configs`             | Create a config (returns 409 if domain+urlPattern exists) |
-| `GET`   | `/api/configs/lookup`      | Lookup by domain (query: `domain`, `url`, `executable`)   |
-| `GET`   | `/api/configs/:id`         | Get config by ID                                          |
-| `PATCH` | `/api/configs/:id`         | Update config (auto-increments version)                   |
-| `POST`  | `/api/configs/:id/vote`    | Vote on a tool within a config                            |
-| `POST`  | `/api/auth/exchange-token` | Exchange a GitHub PAT for a `whub_` API key (one-time)    |
-| `GET`   | `/api/stats`               | Total configs, tools, and top domains                     |
+| Method  | Path                       | Description                                                       |
+| ------- | -------------------------- | ----------------------------------------------------------------- |
+| `GET`   | `/api/configs`             | List configs (query: `search`, `tag`, `page`, `pageSize`, `yolo`) |
+| `POST`  | `/api/configs`             | Create a config (returns 409 if domain+urlPattern exists)         |
+| `GET`   | `/api/configs/lookup`      | Lookup by domain (query: `domain`, `url`, `executable`, `yolo`)   |
+| `GET`   | `/api/configs/:id`         | Get config by ID                                                  |
+| `PATCH` | `/api/configs/:id`         | Update config (auto-increments version)                           |
+| `POST`  | `/api/configs/:id/vote`    | Vote on a tool within a config                                    |
+| `POST`  | `/api/auth/exchange-token` | Exchange a GitHub PAT for a `whub_` API key (one-time)            |
+| `GET`   | `/api/stats`               | Total configs, tools, and top domains                             |
 
 ## MCP Server
 

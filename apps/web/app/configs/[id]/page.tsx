@@ -39,6 +39,28 @@ export default async function ConfigDetailPage({ params }: { params: Promise<{ i
         )}
         <span className="bg-zinc-800 px-2 py-1 rounded">v{config.version}</span>
         <span className="bg-zinc-800 px-2 py-1 rounded">by {config.contributor}</span>
+        <span
+          className={`inline-flex items-center gap-1 px-2 py-1 rounded ${config.verified ? "bg-green-500/10 text-green-400" : "bg-yellow-500/10 text-yellow-400"}`}
+        >
+          {config.verified ? (
+            <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                fillRule="evenodd"
+                d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
+                clipRule="evenodd"
+              />
+            </svg>
+          ) : (
+            <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                fillRule="evenodd"
+                d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l.36.624a.53.53 0 00.12.137.53.53 0 00.169.073l.655.17c1.24.321 1.752 1.822.958 2.81l-.42.524a.53.53 0 00-.082.165.53.53 0 00-.008.183l.095.68c.178 1.27-.9 2.254-2.126 1.836l-.648-.22a.53.53 0 00-.182-.013.53.53 0 00-.17.058l-.596.31c-1.127.587-2.467-.276-2.503-1.56l-.019-.68a.53.53 0 00-.04-.178.53.53 0 00-.107-.147l-.478-.493c-.905-.932-.467-2.47.818-2.874l.68-.213a.53.53 0 00.156-.081.53.53 0 00.112-.133l.36-.624z"
+                clipRule="evenodd"
+              />
+            </svg>
+          )}
+          {config.verified ? "All tools verified" : "Unverified"}
+        </span>
       </div>
 
       <p className="text-zinc-300 mb-4">{config.description}</p>
@@ -53,7 +75,21 @@ export default async function ConfigDetailPage({ params }: { params: Promise<{ i
         </div>
       )}
 
-      <h2 className="text-lg font-semibold text-white mb-3">Tools ({config.tools.length})</h2>
+      <h2 className="text-lg font-semibold text-white mb-3">
+        Tools ({config.tools.length})
+        {(config.verifiedToolNames?.length ?? 0) > 0 && (
+          <span className="ml-2 text-sm font-normal inline-flex items-center gap-1 text-green-400">
+            <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                fillRule="evenodd"
+                d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
+                clipRule="evenodd"
+              />
+            </svg>
+            {config.verifiedToolNames!.length} verified
+          </span>
+        )}
+      </h2>
 
       <div className="space-y-4">
         {config.tools.map((tool) => {
@@ -67,6 +103,18 @@ export default async function ConfigDetailPage({ params }: { params: Promise<{ i
                   {hasExec && exec && (
                     <span className="ml-2 text-[0.7em] bg-blue-600 text-white px-2 py-0.5 rounded-full align-middle">
                       {getExecType(exec)}
+                    </span>
+                  )}
+                  {config.verifiedToolNames?.includes(tool.name) && (
+                    <span className="ml-2 text-[0.7em] inline-inline-flex items-center gap-0.5 bg-green-500/10 text-green-400 px-2 py-0.5 rounded-full align-middle">
+                      <svg className="w-3 h-3 inline-block" viewBox="0 0 20 20" fill="currentColor">
+                        <path
+                          fillRule="evenodd"
+                          d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      verified
                     </span>
                   )}
                 </h3>

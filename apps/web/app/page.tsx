@@ -65,18 +65,18 @@ export default async function HomePage({
 
       {/* Stats */}
       <section className="border-b border-zinc-800 bg-zinc-900/30">
-        <div className="max-w-6xl mx-auto px-6 py-5 flex justify-center gap-10">
+        <div className="max-w-6xl mx-auto px-6 py-6 flex justify-center gap-12">
           <div className="text-center">
-            <span className="text-2xl font-bold text-white">{stats.totalUsers}</span>
-            <span className="block text-zinc-500 text-xs mt-0.5">users</span>
+            <span className="text-4xl font-bold text-white">{stats.totalUsers}</span>
+            <span className="block text-zinc-500 text-sm mt-1">agents</span>
           </div>
           <div className="text-center">
-            <span className="text-2xl font-bold text-white">{stats.totalTools}</span>
-            <span className="block text-zinc-500 text-xs mt-0.5">tools</span>
+            <span className="text-4xl font-bold text-white">{stats.totalTools}</span>
+            <span className="block text-zinc-500 text-sm mt-1">tools</span>
           </div>
           <div className="text-center">
-            <span className="text-2xl font-bold text-white">{stats.topDomains.length}</span>
-            <span className="block text-zinc-500 text-xs mt-0.5">domains</span>
+            <span className="text-4xl font-bold text-white">{stats.topDomains.length}</span>
+            <span className="block text-zinc-500 text-sm mt-1">domains</span>
           </div>
         </div>
       </section>
@@ -150,17 +150,28 @@ export default async function HomePage({
                     {c.title}
                   </h3>
                   <p className="text-sm text-zinc-400 line-clamp-2">{c.description}</p>
-                  <div className="flex gap-2 mt-3 text-xs text-zinc-500">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-3 text-xs text-zinc-500">
                     <span className="bg-zinc-800 px-1.5 py-0.5 rounded">{c.domain}</span>
-                    <span>
+                    <span className="text-zinc-500">
                       {c.tools.length} tool{c.tools.length !== 1 ? "s" : ""}
                     </span>
+                    {(c.verifiedToolNames?.length ?? 0) > 0 && (
+                      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-green-500/10 text-green-400">
+                        <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+                          <path
+                            fillRule="evenodd"
+                            d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        {c.verifiedToolNames!.length}/{c.tools.length}
+                      </span>
+                    )}
                     {(voteScores[c.id] ?? 0) !== 0 && (
                       <span
-                        className={`px-1.5 py-0.5 rounded ${voteScores[c.id] > 0 ? "bg-blue-500/15 text-blue-400" : "bg-red-500/15 text-red-400"}`}
+                        className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded ${voteScores[c.id] > 0 ? "text-blue-400" : "text-red-400"}`}
                       >
-                        {voteScores[c.id] > 0 ? "+" : ""}
-                        {voteScores[c.id]}
+                        {voteScores[c.id] > 0 ? "\u25B2" : "\u25BC"} {Math.abs(voteScores[c.id])}
                       </span>
                     )}
                   </div>
@@ -204,18 +215,29 @@ export default async function HomePage({
               <Link key={c.id} href={`/configs/${c.id}`} className="block">
                 <article className="p-5 bg-zinc-900 border border-zinc-800 rounded-lg hover:border-zinc-600 transition-colors">
                   <h3 className="text-lg font-semibold text-white mb-1">{c.title}</h3>
-                  <div className="flex gap-3 text-xs text-zinc-400 mb-2">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-400 mb-2">
                     <span className="bg-zinc-800 px-2 py-0.5 rounded">{c.domain}</span>
-                    <span>
+                    <span className="text-zinc-500">
                       {c.tools.length} tool{c.tools.length !== 1 ? "s" : ""}
                     </span>
-                    <span>v{c.version}</span>
+                    <span className="text-zinc-600">v{c.version}</span>
+                    {(c.verifiedToolNames?.length ?? 0) > 0 && (
+                      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-green-500/10 text-green-400">
+                        <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+                          <path
+                            fillRule="evenodd"
+                            d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        {c.verifiedToolNames!.length}/{c.tools.length} verified
+                      </span>
+                    )}
                     {(voteScores[c.id] ?? 0) !== 0 && (
                       <span
-                        className={`px-1.5 py-0.5 rounded ${voteScores[c.id] > 0 ? "bg-blue-500/15 text-blue-400" : "bg-red-500/15 text-red-400"}`}
+                        className={`inline-flex items-center gap-0.5 ${voteScores[c.id] > 0 ? "text-blue-400" : "text-red-400"}`}
                       >
-                        {voteScores[c.id] > 0 ? "+" : ""}
-                        {voteScores[c.id]}
+                        {voteScores[c.id] > 0 ? "\u25B2" : "\u25BC"} {Math.abs(voteScores[c.id])}
                       </span>
                     )}
                   </div>
