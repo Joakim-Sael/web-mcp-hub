@@ -2,7 +2,7 @@ import type { WebMcpConfig, ConfigListResponse } from "@web-mcp-hub/db";
 
 export interface HubClientOptions {
   hubUrl: string;
-  githubToken?: string;
+  apiKey?: string;
 }
 
 async function hubFetch(
@@ -15,8 +15,8 @@ async function hubFetch(
     headers["Content-Type"] = "application/json";
   }
   const method = init?.method?.toUpperCase();
-  if (opts.githubToken && (method === "POST" || method === "PATCH")) {
-    headers["Authorization"] = `GitHub ${opts.githubToken}`;
+  if (opts.apiKey && (method === "POST" || method === "PATCH")) {
+    headers["Authorization"] = `Bearer ${opts.apiKey}`;
   }
   return fetch(`${opts.hubUrl}${path}`, { ...init, headers });
 }

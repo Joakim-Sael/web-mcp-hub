@@ -3,7 +3,7 @@ import { createConfigSchema } from "@web-mcp-hub/db";
 import { listConfigs, findByDomainAndPattern, createConfig } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
-import { checkAuth } from "@/lib/auth-check";
+import { checkAuth, getUserName } from "@/lib/auth-check";
 import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET(request: NextRequest) {
@@ -41,9 +41,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  // Enforce contributor to authenticated GitHub login
-  if (authResult.source === "github-token") {
-    parsed.data.contributor = authResult.githubLogin;
+  // Set contributor to the authenticated user's name (GitHub login)
+  const userName = await getUserName(authResult.userId);
+  if (userName) {
+    parsed.data.contributor = userName;
   }
 
   const existing = await findByDomainAndPattern(parsed.data.domain, parsed.data.urlPattern);

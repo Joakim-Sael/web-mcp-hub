@@ -16,7 +16,7 @@ interface Env {
 
 type Props = Record<string, unknown> & {
   login: string;
-  githubToken: string;
+  apiKey: string;
   name: string;
 };
 
@@ -29,7 +29,7 @@ export class WebMcpHubMCP extends McpAgent<Env, object, Props> {
   async init() {
     const hubOpts: HubClientOptions = {
       hubUrl: this.env.HUB_URL ?? "https://webmcp-hub.com",
-      githubToken: this.props!.githubToken,
+      apiKey: this.props!.apiKey,
     };
     registerTools(this as AgentLike, hubOpts);
   }

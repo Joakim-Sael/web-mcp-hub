@@ -6,7 +6,7 @@ import type { HubClientOptions } from "./hub-client";
 
 export interface AgentLike {
   server: McpServer;
-  props: { login: string; githubToken: string; name: string; [key: string]: unknown };
+  props: { login: string; apiKey: string; name: string; [key: string]: unknown };
 }
 
 const executionSchema = z

@@ -234,6 +234,8 @@ All endpoints are served by the Next.js app on port 3000.
 | `GET`   | `/api/configs/lookup` | Lookup by domain (query: `domain`, `url`, `executable`)   |
 | `GET`   | `/api/configs/:id`    | Get config by ID                                          |
 | `PATCH` | `/api/configs/:id`    | Update config (auto-increments version)                   |
+| `POST`  | `/api/configs/:id/vote` | Vote on a tool within a config                          |
+| `POST`  | `/api/auth/exchange-token` | Exchange a GitHub PAT for a `whub_` API key (one-time) |
 | `GET`   | `/api/stats`          | Total configs, tools, and top domains                     |
 
 ## MCP Server
