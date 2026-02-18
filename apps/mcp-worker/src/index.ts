@@ -48,7 +48,7 @@ export class WebMcpHubMCP extends McpAgent<Env, object, Props> {
 
 export default new OAuthProvider({
   apiRoute: "/mcp",
-  apiHandler: WebMcpHubMCP.mount("/mcp") as never,
+  apiHandler: WebMcpHubMCP.serve("/mcp") as never,
   defaultHandler: githubHandler as never,
   authorizeEndpoint: "/authorize",
   tokenEndpoint: "/token",
