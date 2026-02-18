@@ -19,7 +19,8 @@ export async function GET(request: NextRequest) {
     Math.max(1, params.get("pageSize") ? parseInt(params.get("pageSize")!, 10) : 20),
   );
 
-  const result = await listConfigs({ search, tag, page, pageSize });
+  const yolo = params.get("yolo") === "true";
+  const result = await listConfigs({ search, tag, page, pageSize, yolo });
   return NextResponse.json({ ...result, page, pageSize });
 }
 

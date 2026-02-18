@@ -142,11 +142,17 @@ When navigating between pages on the same domain, call lookup_config again with 
         .boolean()
         .optional()
         .describe("Filter to only configs with execution metadata (for Chrome extension)"),
+      yolo: z
+        .boolean()
+        .optional()
+        .describe(
+          "Include unverified configs. Default false (only verified configs). Set true to see all configs including unverified ones.",
+        ),
     },
     { readOnlyHint: true, openWorldHint: true },
-    async ({ domain, url, executable }) => {
+    async ({ domain, url, executable, yolo }) => {
       try {
-        const result = await hub.lookupConfig(domain, url, { executable });
+        const result = await hub.lookupConfig(domain, url, { executable, yolo });
         if (result.configs.length === 0) {
           return {
             content: [
@@ -194,11 +200,17 @@ When navigating between pages on the same domain, call lookup_config again with 
         .max(100)
         .optional()
         .describe("Results per page (default 20, max 100)"),
+      yolo: z
+        .boolean()
+        .optional()
+        .describe(
+          "Include unverified configs. Default false (only verified configs). Set true to see all configs including unverified ones.",
+        ),
     },
     { readOnlyHint: true, openWorldHint: true },
-    async ({ search, tag, page, pageSize }) => {
+    async ({ search, tag, page, pageSize, yolo }) => {
       try {
-        const result = await hub.listConfigs({ search, tag, page, pageSize });
+        const result = await hub.listConfigs({ search, tag, page, pageSize, yolo });
 
         if (result.configs.length === 0) {
           return {

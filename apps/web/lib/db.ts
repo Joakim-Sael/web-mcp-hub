@@ -30,9 +30,17 @@ function rowToConfig(row: typeof configs.$inferSelect): WebMcpConfig {
     tools: row.tools,
     contributor: row.contributor,
     version: row.version,
+    verified: row.verified === 1,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
     tags: row.tags ?? undefined,
+  };
+}
+
+function rowToVerifiedConfig(row: typeof configs.$inferSelect): WebMcpConfig {
+  return {
+    ...rowToConfig(row),
+    tools: row.verifiedTools ?? row.tools,
   };
 }
 
@@ -45,13 +53,19 @@ export async function listConfigs(opts: {
   tag?: string;
   page?: number;
   pageSize?: number;
+  yolo?: boolean;
 }): Promise<{ configs: WebMcpConfig[]; total: number }> {
   const db = getDb();
   const page = opts.page ?? 1;
   const pageSize = opts.pageSize ?? 20;
   const offset = (page - 1) * pageSize;
+  const yolo = opts.yolo ?? false;
 
   const conditions = [];
+
+  if (!yolo) {
+    conditions.push(sql`${configs.verifiedTools} IS NOT NULL`);
+  }
 
   if (opts.search) {
     const term = `%${opts.search}%`;
@@ -85,7 +99,7 @@ export async function listConfigs(opts: {
     .offset(offset);
 
   return {
-    configs: rows.map(rowToConfig),
+    configs: rows.map(yolo ? rowToConfig : rowToVerifiedConfig),
     total: Number(countResult.count),
   };
 }
@@ -93,14 +107,18 @@ export async function listConfigs(opts: {
 export async function lookupByDomain(
   domain: string,
   url?: string,
-  opts?: { executable?: boolean },
+  opts?: { executable?: boolean; yolo?: boolean },
 ): Promise<WebMcpConfig[]> {
   const db = getDb();
   const normalized = domain.toLowerCase().replace(/^www\./, "");
+  const yolo = opts?.yolo ?? false;
 
   const conditions = [eq(configs.domain, normalized)];
   if (opts?.executable) {
     conditions.push(eq(configs.hasExecution, 1));
+  }
+  if (!yolo) {
+    conditions.push(sql`${configs.verifiedTools} IS NOT NULL`);
   }
 
   // Fetch all configs for this domain
@@ -110,7 +128,8 @@ export async function lookupByDomain(
     .where(and(...conditions))
     .orderBy(desc(configs.updatedAt));
 
-  const allConfigs = rows.map(rowToConfig);
+  const mapper = yolo ? rowToConfig : rowToVerifiedConfig;
+  const allConfigs = rows.map(mapper);
 
   // Without a URL, return everything for the domain
   if (!url) return allConfigs;
@@ -158,6 +177,8 @@ export async function createConfig(input: CreateConfigInput): Promise<WebMcpConf
       version: 1,
       tags: input.tags ?? null,
       hasExecution,
+      verified: 0,
+      verifiedTools: null,
       createdAt: now,
       updatedAt: now,
     })
@@ -176,6 +197,7 @@ export async function updateConfig(
 
   const updates: Record<string, unknown> = {
     version: sql`${configs.version} + 1`,
+    verified: 0,
     updatedAt: new Date(),
   };
 
