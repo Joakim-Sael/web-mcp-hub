@@ -66,10 +66,16 @@ URL patterns are always in "domain/path" format — no protocol, no "www.", no C
       domain: z.string().describe("Domain to look up, e.g. 'google.com'"),
       url: z.string().optional().describe("Current page URL for path-scoped matching"),
       executable: z.boolean().optional().describe("Filter to only executable configs"),
+      yolo: z
+        .boolean()
+        .optional()
+        .describe(
+          "Include unverified configs. Default false (only verified configs). Set true to see all configs including unverified ones.",
+        ),
     },
-    async ({ domain, url, executable }) => {
+    async ({ domain, url, executable, yolo }) => {
       try {
-        const result = await hub.lookupConfig(domain, url, { executable }, hubOpts);
+        const result = await hub.lookupConfig(domain, url, { executable, yolo }, hubOpts);
         if (result.configs.length === 0) {
           return {
             content: [
@@ -116,10 +122,16 @@ URL patterns are always in "domain/path" format — no protocol, no "www.", no C
         .max(100)
         .optional()
         .describe("Results per page (default 20)"),
+      yolo: z
+        .boolean()
+        .optional()
+        .describe(
+          "Include unverified configs. Default false (only verified configs). Set true to see all configs including unverified ones.",
+        ),
     },
-    async ({ search, tag, page, pageSize }) => {
+    async ({ search, tag, page, pageSize, yolo }) => {
       try {
-        const result = await hub.listConfigs({ search, tag, page, pageSize }, hubOpts);
+        const result = await hub.listConfigs({ search, tag, page, pageSize, yolo }, hubOpts);
         if (result.configs.length === 0) {
           return {
             content: [{ type: "text" as const, text: "No configs found matching your criteria." }],

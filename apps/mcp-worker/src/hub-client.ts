@@ -24,18 +24,21 @@ async function hubFetch(
 export async function lookupConfig(
   domain: string,
   url: string | undefined,
-  filter: { executable?: boolean } | undefined,
+  filter: { executable?: boolean; yolo?: boolean } | undefined,
   opts: HubClientOptions,
 ): Promise<{ configs: WebMcpConfig[] }> {
   const params = new URLSearchParams({ domain });
   if (url) params.set("url", url);
   if (filter?.executable) params.set("executable", "true");
+  if (filter?.yolo) params.set("yolo", "true");
   const res = await hubFetch(`/api/configs/lookup?${params}`, opts);
   return res.json() as Promise<{ configs: WebMcpConfig[] }>;
 }
 
 export async function listConfigs(
-  filter: { search?: string; tag?: string; page?: number; pageSize?: number } | undefined,
+  filter:
+    | { search?: string; tag?: string; page?: number; pageSize?: number; yolo?: boolean }
+    | undefined,
   opts: HubClientOptions,
 ): Promise<ConfigListResponse> {
   const params = new URLSearchParams();
@@ -43,6 +46,7 @@ export async function listConfigs(
   if (filter?.tag) params.set("tag", filter.tag);
   if (filter?.page) params.set("page", String(filter.page));
   if (filter?.pageSize) params.set("pageSize", String(filter.pageSize));
+  if (filter?.yolo) params.set("yolo", "true");
   const qs = params.toString();
   const res = await hubFetch(`/api/configs${qs ? `?${qs}` : ""}`, opts);
   return res.json() as Promise<ConfigListResponse>;

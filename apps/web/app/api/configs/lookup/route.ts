@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
 
   const url = params.get("url") ?? undefined;
   const executable = params.get("executable") === "true";
-  const configs = await lookupByDomain(domain, url, { executable });
+  const yolo = params.get("yolo") === "true";
+  const configs = await lookupByDomain(domain, url, { executable, yolo });
   return NextResponse.json({ configs });
 }

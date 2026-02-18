@@ -37,6 +37,7 @@ export function formatConfig(config: WebMcpConfig, verbose = false): string {
     `Description: ${config.description}`,
     `Contributor: ${config.contributor}`,
     `Version: ${config.version}`,
+    `Verified: ${config.verified ? "Yes" : "No"}`,
     `Tools (${config.tools.length}):`,
     ...config.tools.map((t) => {
       if (verbose) {

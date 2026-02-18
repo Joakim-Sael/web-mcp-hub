@@ -24,6 +24,8 @@ export const configs = pgTable(
     version: integer("version").default(1).notNull(),
     tags: jsonb("tags").$type<string[]>(),
     hasExecution: integer("has_execution").default(0).notNull(),
+    verified: integer("verified").default(0).notNull(),
+    verifiedTools: jsonb("verified_tools").$type<ToolDescriptor[]>(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },

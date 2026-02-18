@@ -31,17 +31,27 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   }
 
   const { id } = await params;
+
+  // Ownership check: only the config's contributor can update it
+  const existing = await getConfigById(id);
+  if (!existing) {
+    return NextResponse.json({ error: "Config not found" }, { status: 404 });
+  }
+  const userName = await getUserName(authResult.userId);
+  if (!userName || existing.contributor !== userName) {
+    return NextResponse.json(
+      { error: "Forbidden: only the config owner can update it" },
+      { status: 403 },
+    );
+  }
+
   const body = await request.json();
   const parsed = updateConfigSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  // Set contributor to the authenticated user's name (GitHub login)
-  const userName = await getUserName(authResult.userId);
-  if (userName) {
-    parsed.data.contributor = userName;
-  }
+  parsed.data.contributor = userName;
 
   const config = await updateConfig(id, parsed.data);
   if (!config) {
