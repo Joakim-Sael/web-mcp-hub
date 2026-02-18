@@ -21,8 +21,7 @@ export type LeaderboardEntry = {
 
 function rowToConfig(row: typeof configs.$inferSelect): WebMcpConfig {
   const vMap = row.verifiedTools ?? {};
-  const allVerified =
-    row.tools.length > 0 && row.tools.every((t) => t.name in vMap);
+  const allVerified = row.tools.length > 0 && row.tools.every((t) => t.name in vMap);
   return {
     id: row.id,
     domain: row.domain,
@@ -43,11 +42,8 @@ function rowToConfig(row: typeof configs.$inferSelect): WebMcpConfig {
 function rowToVerifiedConfig(row: typeof configs.$inferSelect): WebMcpConfig {
   const vMap = row.verifiedTools ?? {};
   // Only include tools that have a verified snapshot, using the snapshot version
-  const verifiedTools = row.tools
-    .filter((t) => t.name in vMap)
-    .map((t) => vMap[t.name]);
-  const allVerified =
-    row.tools.length > 0 && row.tools.every((t) => t.name in vMap);
+  const verifiedTools = row.tools.filter((t) => t.name in vMap).map((t) => vMap[t.name]);
+  const allVerified = row.tools.length > 0 && row.tools.every((t) => t.name in vMap);
   return {
     id: row.id,
     domain: row.domain,
