@@ -170,6 +170,7 @@ export interface WebMcpConfig {
   contributor: string;
   version: number;
   verified: boolean;
+  verifiedToolNames?: string[];
   createdAt: string;
   updatedAt: string;
   tags?: string[];
