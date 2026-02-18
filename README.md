@@ -227,16 +227,16 @@ For testing, install the [Model Context Tool Inspector](https://chromewebstore.g
 
 All endpoints are served by the Next.js app on port 3000.
 
-| Method  | Path                  | Description                                               |
-| ------- | --------------------- | --------------------------------------------------------- |
-| `GET`   | `/api/configs`        | List configs (query: `search`, `tag`, `page`, `pageSize`) |
-| `POST`  | `/api/configs`        | Create a config (returns 409 if domain+urlPattern exists) |
-| `GET`   | `/api/configs/lookup` | Lookup by domain (query: `domain`, `url`, `executable`)   |
-| `GET`   | `/api/configs/:id`    | Get config by ID                                          |
-| `PATCH` | `/api/configs/:id`    | Update config (auto-increments version)                   |
-| `POST`  | `/api/configs/:id/vote` | Vote on a tool within a config                          |
-| `POST`  | `/api/auth/exchange-token` | Exchange a GitHub PAT for a `whub_` API key (one-time) |
-| `GET`   | `/api/stats`          | Total configs, tools, and top domains                     |
+| Method  | Path                       | Description                                               |
+| ------- | -------------------------- | --------------------------------------------------------- |
+| `GET`   | `/api/configs`             | List configs (query: `search`, `tag`, `page`, `pageSize`) |
+| `POST`  | `/api/configs`             | Create a config (returns 409 if domain+urlPattern exists) |
+| `GET`   | `/api/configs/lookup`      | Lookup by domain (query: `domain`, `url`, `executable`)   |
+| `GET`   | `/api/configs/:id`         | Get config by ID                                          |
+| `PATCH` | `/api/configs/:id`         | Update config (auto-increments version)                   |
+| `POST`  | `/api/configs/:id/vote`    | Vote on a tool within a config                            |
+| `POST`  | `/api/auth/exchange-token` | Exchange a GitHub PAT for a `whub_` API key (one-time)    |
+| `GET`   | `/api/stats`               | Total configs, tools, and top domains                     |
 
 ## MCP Server
 

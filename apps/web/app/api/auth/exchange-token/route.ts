@@ -36,7 +36,10 @@ export async function POST(request: NextRequest) {
 
   if (!ghRes.ok) {
     return NextResponse.json(
-      { error: "Invalid GitHub token", message: "The provided GitHub token is invalid or expired." },
+      {
+        error: "Invalid GitHub token",
+        message: "The provided GitHub token is invalid or expired.",
+      },
       { status: 401 },
     );
   }
@@ -85,9 +88,7 @@ export async function POST(request: NextRequest) {
 
   // Delete previous MCP worker keys for this user to prevent accumulation
   const mcpLabel = `MCP worker (${ghUser.login})`;
-  await db
-    .delete(apiKeys)
-    .where(and(eq(apiKeys.userId, userId), eq(apiKeys.label, mcpLabel)));
+  await db.delete(apiKeys).where(and(eq(apiKeys.userId, userId), eq(apiKeys.label, mcpLabel)));
 
   // Generate a whub_ API key
   const rawBytes = randomBytes(30);
