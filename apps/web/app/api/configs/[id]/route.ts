@@ -3,7 +3,7 @@ import { updateConfigSchema } from "@web-mcp-hub/db";
 import { getConfigById, updateConfig } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
-import { checkAuth } from "@/lib/auth-check";
+import { checkAuth, getUserName } from "@/lib/auth-check";
 import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -37,9 +37,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  // Enforce contributor to authenticated GitHub login
-  if (authResult.source === "github-token") {
-    parsed.data.contributor = authResult.githubLogin;
+  // Set contributor to the authenticated user's name (GitHub login)
+  const userName = await getUserName(authResult.userId);
+  if (userName) {
+    parsed.data.contributor = userName;
   }
 
   const config = await updateConfig(id, parsed.data);

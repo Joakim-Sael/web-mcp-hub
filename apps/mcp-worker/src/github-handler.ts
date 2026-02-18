@@ -92,6 +92,20 @@ app.get("/callback", async (c) => {
 
   const ghUser = (await userRes.json()) as GitHubUser;
 
+  // Exchange GitHub token for a hub API key (one-time)
+  const exchangeRes = await fetch(new URL("/api/auth/exchange-token", c.env.HUB_URL).toString(), {
+    method: "POST",
+    headers: {
+      Authorization: `GitHub ${tokenData.access_token}`,
+    },
+  });
+
+  if (!exchangeRes.ok) {
+    return c.text("Failed to exchange GitHub token for API key", 500);
+  }
+
+  const exchangeData = (await exchangeRes.json()) as { apiKey: string; login: string };
+
   // Complete the OAuth authorization via OAuthHelpers method
   const oauthHelpers = c.env.OAUTH_PROVIDER;
   const { redirectTo } = await oauthHelpers.completeAuthorization({
@@ -102,7 +116,7 @@ app.get("/callback", async (c) => {
     props: {
       login: ghUser.login,
       name: ghUser.name ?? ghUser.login,
-      githubToken: tokenData.access_token,
+      apiKey: exchangeData.apiKey,
     },
   });
 
