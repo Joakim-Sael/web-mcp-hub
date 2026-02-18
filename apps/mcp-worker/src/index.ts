@@ -26,12 +26,23 @@ export class WebMcpHubMCP extends McpAgent<Env, object, Props> {
     version: "1.0.0",
   });
 
+  // Mutable hubOpts — shared by reference with tool closures so that
+  // updateProps() can swap the API key without re-registering tools.
+  hubOpts: HubClientOptions = { hubUrl: "" };
+  toolsRegistered = false;
+
   async init() {
-    const hubOpts: HubClientOptions = {
-      hubUrl: this.env.HUB_URL ?? "https://webmcp-hub.com",
-      apiKey: this.props!.apiKey,
-    };
-    registerTools(this as AgentLike, hubOpts);
+    this.hubOpts.hubUrl = this.env.HUB_URL ?? "https://www.webmcp-hub.com";
+    this.hubOpts.apiKey = this.props?.apiKey;
+    if (!this.toolsRegistered) {
+      registerTools(this as AgentLike, this.hubOpts);
+      this.toolsRegistered = true;
+    }
+  }
+
+  async updateProps(props: Props) {
+    super.updateProps(props);
+    this.hubOpts.apiKey = props.apiKey;
   }
 }
 

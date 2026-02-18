@@ -28,7 +28,7 @@
   ],
 
   "vars": {
-    "HUB_URL": "https://webmcp-hub.com",
+    "HUB_URL": "https://www.webmcp-hub.com",
   },
 
   // Secrets (set via `wrangler secret put`):
