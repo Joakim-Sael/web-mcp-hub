@@ -8,8 +8,7 @@ async function hubFetch(path: string, init?: RequestInit): Promise<Response> {
   if (init?.body) {
     headers["Content-Type"] = "application/json";
   }
-  const method = init?.method?.toUpperCase();
-  if (HUB_API_KEY && (method === "POST" || method === "PATCH")) {
+  if (HUB_API_KEY) {
     headers["Authorization"] = `Bearer ${HUB_API_KEY}`;
   }
   return fetch(`${HUB_BASE}${path}`, { ...init, headers });
