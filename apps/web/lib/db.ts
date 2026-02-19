@@ -22,6 +22,11 @@ export type LeaderboardEntry = {
 function rowToConfig(row: typeof configs.$inferSelect): WebMcpConfig {
   const vMap = row.verifiedTools ?? {};
   const allVerified = row.tools.length > 0 && row.tools.every((t) => t.name in vMap);
+  // Only include verified names for tools that actually exist in the tools array
+  const currentToolNames = new Set(row.tools.map((t) => t.name));
+  const verifiedToolNames = row.verifiedTools
+    ? Object.keys(row.verifiedTools).filter((name) => currentToolNames.has(name))
+    : undefined;
   return {
     id: row.id,
     domain: row.domain,
@@ -33,7 +38,8 @@ function rowToConfig(row: typeof configs.$inferSelect): WebMcpConfig {
     contributor: row.contributor,
     version: row.version,
     verified: allVerified,
-    verifiedToolNames: row.verifiedTools ? Object.keys(row.verifiedTools) : undefined,
+    verifiedToolNames:
+      verifiedToolNames && verifiedToolNames.length > 0 ? verifiedToolNames : undefined,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
     tags: row.tags ?? undefined,
@@ -45,6 +51,11 @@ function rowToVerifiedConfig(row: typeof configs.$inferSelect): WebMcpConfig {
   // Only include tools that have a verified snapshot, using the snapshot version
   const verifiedTools = row.tools.filter((t) => t.name in vMap).map((t) => vMap[t.name]);
   const allVerified = row.tools.length > 0 && row.tools.every((t) => t.name in vMap);
+  // Only report verified names for tools that still exist in the tools array
+  const currentToolNames = new Set(row.tools.map((t) => t.name));
+  const verifiedToolNames = row.verifiedTools
+    ? Object.keys(row.verifiedTools).filter((name) => currentToolNames.has(name))
+    : undefined;
   return {
     id: row.id,
     domain: row.domain,
@@ -56,7 +67,8 @@ function rowToVerifiedConfig(row: typeof configs.$inferSelect): WebMcpConfig {
     contributor: row.contributor,
     version: row.version,
     verified: allVerified,
-    verifiedToolNames: row.verifiedTools ? Object.keys(row.verifiedTools) : undefined,
+    verifiedToolNames:
+      verifiedToolNames && verifiedToolNames.length > 0 ? verifiedToolNames : undefined,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
     tags: row.tags ?? undefined,
@@ -214,8 +226,10 @@ export async function updateConfig(
   input: UpdateConfigInput,
 ): Promise<WebMcpConfig | null> {
   const db = getDb();
-  const existing = await getConfigById(id);
-  if (!existing) return null;
+
+  // Fetch the raw DB row so we can merge tools and sync verifiedTools
+  const [existingRow] = await db.select().from(configs).where(eq(configs.id, id));
+  if (!existingRow) return null;
 
   const updates: Record<string, unknown> = {
     version: sql`${configs.version} + 1`,
@@ -227,8 +241,26 @@ export async function updateConfig(
   if (input.description !== undefined) updates.description = input.description;
   if (input.pageType !== undefined) updates.pageType = input.pageType;
   if (input.tools !== undefined) {
-    updates.tools = input.tools;
-    updates.hasExecution = computeHasExecution(input.tools);
+    // Merge by tool name: incoming tools override existing ones with the same
+    // name, new tools are appended, existing tools not in the update are kept.
+    const toolMap = new Map(existingRow.tools.map((t) => [t.name, t]));
+    for (const t of input.tools) {
+      toolMap.set(t.name, t);
+    }
+    const mergedTools = Array.from(toolMap.values());
+    updates.tools = mergedTools;
+    updates.hasExecution = computeHasExecution(mergedTools);
+
+    // Prune verifiedTools to only keep entries for tools still present
+    const vMap = existingRow.verifiedTools ?? {};
+    const mergedNames = new Set(mergedTools.map((t) => t.name));
+    const prunedVerified: Record<string, ToolDescriptor> = {};
+    for (const [name, snapshot] of Object.entries(vMap)) {
+      if (mergedNames.has(name)) {
+        prunedVerified[name] = snapshot;
+      }
+    }
+    updates.verifiedTools = Object.keys(prunedVerified).length > 0 ? prunedVerified : null;
   }
   if (input.contributor !== undefined) updates.contributor = input.contributor;
   if (input.tags !== undefined) updates.tags = input.tags;

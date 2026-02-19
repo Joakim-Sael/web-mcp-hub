@@ -316,7 +316,7 @@ CRITICAL: urlPattern must be in "domain/path" format (e.g. "youtube.com/**"). NE
           }),
         )
         .optional()
-        .describe("Complete replacement tools array"),
+        .describe("Tools to add or update (merged by name with existing tools)"),
       tags: z.array(z.string()).optional().describe("Updated tags"),
     },
     async ({ id, ...updates }) => {
