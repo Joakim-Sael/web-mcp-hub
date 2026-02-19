@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { listConfigs, getStats, getLeaderboard, getConfigVoteSummaries } from "@/lib/db";
 import { IntegrationTabs } from "@/components/integration-tabs";
+import { auth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -15,10 +16,13 @@ export default async function HomePage({
   const page = params.page ? parseInt(params.page, 10) : 1;
   const pageSize = 20;
 
+  const session = await auth();
+  const currentUser = session?.user?.name ?? undefined;
+
   const [{ configs, total }, stats, { configs: featured }, topContributors] = await Promise.all([
-    listConfigs({ search: search || undefined, page, pageSize }),
+    listConfigs({ search: search || undefined, page, pageSize, currentUser }),
     getStats(),
-    listConfigs({ pageSize: 4 }),
+    listConfigs({ pageSize: 4, currentUser }),
     getLeaderboard(5),
   ]);
 
