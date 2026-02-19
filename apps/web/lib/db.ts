@@ -100,7 +100,7 @@ export async function listConfigs(opts: {
   if (!yolo) {
     const isVerified = sql`${configs.verifiedTools} IS NOT NULL AND ${configs.verifiedTools} != '{}'::jsonb`;
     if (opts.currentUser) {
-      conditions.push(or(isVerified, eq(configs.contributor, opts.currentUser)));
+      conditions.push(or(isVerified, eq(configs.contributor, opts.currentUser))!);
     } else {
       conditions.push(isVerified);
     }
@@ -166,7 +166,7 @@ export async function lookupByDomain(
   if (!yolo) {
     const isVerified = sql`${configs.verifiedTools} IS NOT NULL AND ${configs.verifiedTools} != '{}'::jsonb`;
     if (opts?.currentUser) {
-      conditions.push(or(isVerified, eq(configs.contributor, opts.currentUser)));
+      conditions.push(or(isVerified, eq(configs.contributor, opts.currentUser))!);
     } else {
       conditions.push(isVerified);
     }
