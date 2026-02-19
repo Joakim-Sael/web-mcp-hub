@@ -167,6 +167,8 @@ export interface WebMcpConfig {
   title: string;
   description: string;
   tools: ToolDescriptor[];
+  /** Total tools in the DB row (may differ from tools.length when verified-only filtering is applied). */
+  totalToolCount?: number;
   contributor: string;
   version: number;
   verified: boolean;

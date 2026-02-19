@@ -20,7 +20,14 @@ export async function GET(request: NextRequest) {
   );
 
   const yolo = params.get("yolo") === "true";
-  const result = await listConfigs({ search, tag, page, pageSize, yolo });
+
+  let currentUser: string | undefined;
+  const authResult = await checkAuth(request);
+  if (authResult.authenticated) {
+    currentUser = (await getUserName(authResult.userId)) ?? undefined;
+  }
+
+  const result = await listConfigs({ search, tag, page, pageSize, yolo, currentUser });
   return NextResponse.json({ ...result, page, pageSize });
 }
 

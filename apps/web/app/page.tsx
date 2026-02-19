@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { listConfigs, getStats, getLeaderboard, getConfigVoteSummaries } from "@/lib/db";
 import { IntegrationTabs } from "@/components/integration-tabs";
+import { auth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -15,10 +16,13 @@ export default async function HomePage({
   const page = params.page ? parseInt(params.page, 10) : 1;
   const pageSize = 20;
 
+  const session = await auth();
+  const currentUser = session?.user?.name ?? undefined;
+
   const [{ configs, total }, stats, { configs: featured }, topContributors] = await Promise.all([
-    listConfigs({ search: search || undefined, page, pageSize }),
+    listConfigs({ search: search || undefined, page, pageSize, currentUser }),
     getStats(),
-    listConfigs({ pageSize: 4 }),
+    listConfigs({ pageSize: 4, currentUser }),
     getLeaderboard(5),
   ]);
 
@@ -152,9 +156,14 @@ export default async function HomePage({
                   <p className="text-sm text-zinc-400 line-clamp-2">{c.description}</p>
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-3 text-xs text-zinc-500">
                     <span className="bg-zinc-800 px-1.5 py-0.5 rounded">{c.domain}</span>
-                    <span className="text-zinc-500">
-                      {c.tools.length} tool{c.tools.length !== 1 ? "s" : ""}
-                    </span>
+                    {(() => {
+                      const total = c.totalToolCount ?? c.tools.length;
+                      return (
+                        <span className="text-zinc-500">
+                          {total} tool{total !== 1 ? "s" : ""}
+                        </span>
+                      );
+                    })()}
                     {(c.verifiedToolNames?.length ?? 0) > 0 && (
                       <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-green-500/10 text-green-400">
                         <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
@@ -164,7 +173,7 @@ export default async function HomePage({
                             clipRule="evenodd"
                           />
                         </svg>
-                        {c.verifiedToolNames!.length}/{c.tools.length}
+                        {c.verifiedToolNames!.length}/{c.totalToolCount ?? c.tools.length} verified
                       </span>
                     )}
                     {(voteScores[c.id] ?? 0) !== 0 && (
@@ -217,9 +226,14 @@ export default async function HomePage({
                   <h3 className="text-lg font-semibold text-white mb-1">{c.title}</h3>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-400 mb-2">
                     <span className="bg-zinc-800 px-2 py-0.5 rounded">{c.domain}</span>
-                    <span className="text-zinc-500">
-                      {c.tools.length} tool{c.tools.length !== 1 ? "s" : ""}
-                    </span>
+                    {(() => {
+                      const total = c.totalToolCount ?? c.tools.length;
+                      return (
+                        <span className="text-zinc-500">
+                          {total} tool{total !== 1 ? "s" : ""}
+                        </span>
+                      );
+                    })()}
                     <span className="text-zinc-600">v{c.version}</span>
                     {(c.verifiedToolNames?.length ?? 0) > 0 && (
                       <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-green-500/10 text-green-400">
@@ -230,7 +244,7 @@ export default async function HomePage({
                             clipRule="evenodd"
                           />
                         </svg>
-                        {c.verifiedToolNames!.length}/{c.tools.length} verified
+                        {c.verifiedToolNames!.length}/{c.totalToolCount ?? c.tools.length} verified
                       </span>
                     )}
                     {(voteScores[c.id] ?? 0) !== 0 && (

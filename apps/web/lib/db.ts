@@ -64,6 +64,7 @@ function rowToVerifiedConfig(row: typeof configs.$inferSelect): WebMcpConfig {
     title: row.title,
     description: row.description,
     tools: verifiedTools,
+    totalToolCount: row.tools.length,
     contributor: row.contributor,
     version: row.version,
     verified: allVerified,
@@ -85,6 +86,8 @@ export async function listConfigs(opts: {
   page?: number;
   pageSize?: number;
   yolo?: boolean;
+  /** When set, the user's own configs are included even if unverified. */
+  currentUser?: string;
 }): Promise<{ configs: WebMcpConfig[]; total: number }> {
   const db = getDb();
   const page = opts.page ?? 1;
@@ -95,9 +98,12 @@ export async function listConfigs(opts: {
   const conditions = [];
 
   if (!yolo) {
-    conditions.push(
-      sql`${configs.verifiedTools} IS NOT NULL AND ${configs.verifiedTools} != '{}'::jsonb`,
-    );
+    const isVerified = sql`${configs.verifiedTools} IS NOT NULL AND ${configs.verifiedTools} != '{}'::jsonb`;
+    if (opts.currentUser) {
+      conditions.push(or(isVerified, eq(configs.contributor, opts.currentUser))!);
+    } else {
+      conditions.push(isVerified);
+    }
   }
 
   if (opts.search) {
@@ -131,8 +137,15 @@ export async function listConfigs(opts: {
     .limit(pageSize)
     .offset(offset);
 
+  const mapper = yolo
+    ? rowToConfig
+    : opts.currentUser
+      ? (row: typeof configs.$inferSelect) =>
+          row.contributor === opts.currentUser ? rowToConfig(row) : rowToVerifiedConfig(row)
+      : rowToVerifiedConfig;
+
   return {
-    configs: rows.map(yolo ? rowToConfig : rowToVerifiedConfig),
+    configs: rows.map(mapper),
     total: Number(countResult.count),
   };
 }
@@ -140,7 +153,7 @@ export async function listConfigs(opts: {
 export async function lookupByDomain(
   domain: string,
   url?: string,
-  opts?: { executable?: boolean; yolo?: boolean },
+  opts?: { executable?: boolean; yolo?: boolean; currentUser?: string },
 ): Promise<WebMcpConfig[]> {
   const db = getDb();
   const normalized = domain.toLowerCase().replace(/^www\./, "");
@@ -151,9 +164,12 @@ export async function lookupByDomain(
     conditions.push(eq(configs.hasExecution, 1));
   }
   if (!yolo) {
-    conditions.push(
-      sql`${configs.verifiedTools} IS NOT NULL AND ${configs.verifiedTools} != '{}'::jsonb`,
-    );
+    const isVerified = sql`${configs.verifiedTools} IS NOT NULL AND ${configs.verifiedTools} != '{}'::jsonb`;
+    if (opts?.currentUser) {
+      conditions.push(or(isVerified, eq(configs.contributor, opts.currentUser))!);
+    } else {
+      conditions.push(isVerified);
+    }
   }
 
   // Fetch all configs for this domain
@@ -163,7 +179,12 @@ export async function lookupByDomain(
     .where(and(...conditions))
     .orderBy(desc(configs.updatedAt));
 
-  const mapper = yolo ? rowToConfig : rowToVerifiedConfig;
+  const mapper = yolo
+    ? rowToConfig
+    : opts?.currentUser
+      ? (row: typeof configs.$inferSelect) =>
+          row.contributor === opts.currentUser ? rowToConfig(row) : rowToVerifiedConfig(row)
+      : rowToVerifiedConfig;
   const allConfigs = rows.map(mapper);
 
   // Without a URL, return everything for the domain
