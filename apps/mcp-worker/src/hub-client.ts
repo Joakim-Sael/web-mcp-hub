@@ -14,8 +14,7 @@ async function hubFetch(
   if (init?.body) {
     headers["Content-Type"] = "application/json";
   }
-  const method = init?.method?.toUpperCase();
-  if (opts.apiKey && (method === "POST" || method === "PATCH")) {
+  if (opts.apiKey) {
     headers["Authorization"] = `Bearer ${opts.apiKey}`;
   }
   return fetch(`${opts.hubUrl}${path}`, { ...init, headers });
