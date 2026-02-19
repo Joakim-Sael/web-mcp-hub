@@ -129,7 +129,9 @@ URL pattern matching rules (patterns are always "domain/path" format — no prot
 - "example.com/dashboard/:id" — matches /dashboard/<anything> (dynamic segment)
 - "example.com/admin/**" — matches /admin and everything under it (wildcard)
 
-When navigating between pages on the same domain, call lookup_config again with the new URL to get the correct page-specific tools.`,
+When navigating between pages on the same domain, call lookup_config again with the new URL to get the correct page-specific tools.
+
+By default, only verified configs are returned. If you are authenticated (via API key), your own unverified configs are also included automatically so you can test before verification. To see all unverified configs from everyone, set yolo=true.`,
     {
       domain: z.string().describe("Domain to look up, e.g. 'google.com'"),
       url: z
@@ -185,7 +187,7 @@ When navigating between pages on the same domain, call lookup_config again with 
   // list_configs
   server.tool(
     "list_configs",
-    "Browse and search all WebMCP configs in the hub.",
+    "Browse and search all WebMCP configs in the hub. By default only verified configs are returned. If authenticated, your own unverified configs are also included. Set yolo=true to see all configs including unverified ones from everyone.",
     {
       search: z
         .string()

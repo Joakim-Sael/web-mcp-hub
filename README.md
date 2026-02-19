@@ -177,7 +177,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for full examples including execution met
 
 ## Authentication (optional)
 
-Authentication is optional — all read endpoints remain public. When configured, write endpoints (POST/PATCH) require either a GitHub session or an API key.
+Authentication is optional — all read endpoints remain public. When configured, write endpoints (POST/PATCH) require either a GitHub session or an API key. Authenticated read requests also return your own unverified configs alongside verified ones, so you can test before verification.
 
 ### GitHub OAuth
 
@@ -191,7 +191,7 @@ Authentication is optional — all read endpoints remain public. When configured
    ```
 4. Restart the dev server — a "Sign in with GitHub" button appears in the header
 
-### API Keys (for MCP server)
+### API Keys (for MCP server and Chrome extension)
 
 1. Sign in via GitHub at `http://localhost:3000`
 2. Go to **Settings** (`/settings`) and create a new API key
@@ -213,7 +213,19 @@ All newly submitted tools start as **unverified** and are hidden from default AP
 
 ### Viewing unverified tools
 
-By default, list and lookup endpoints only return configs that have at least one verified tool, and only the verified tool snapshots are included. To see everything (including unverified tools), pass `yolo=true`:
+By default, list and lookup endpoints only return configs that have at least one verified tool, and only the verified tool snapshots are included.
+
+**Authenticated requests** automatically include your own unverified configs alongside verified ones — no extra parameter needed. This lets you test your configs before they are verified. Pass your API key via the `Authorization` header:
+
+```bash
+# See verified configs + your own unverified configs
+curl "https://webmcp-hub.com/api/configs/lookup?domain=example.com" \
+  -H "Authorization: Bearer whub_your_api_key"
+```
+
+The Chrome extension also supports this — paste your API key in the extension popup settings to see your own unverified configs in the browser.
+
+To see **all** unverified configs from everyone (not just your own), pass `yolo=true`:
 
 ```bash
 # API
@@ -251,9 +263,9 @@ All endpoints are served by the Next.js app on port 3000.
 
 | Method  | Path                       | Description                                                       |
 | ------- | -------------------------- | ----------------------------------------------------------------- |
-| `GET`   | `/api/configs`             | List configs (query: `search`, `tag`, `page`, `pageSize`, `yolo`) |
+| `GET`   | `/api/configs`             | List configs (query: `search`, `tag`, `page`, `pageSize`, `yolo`). Auth optional — also returns your own unverified configs |
 | `POST`  | `/api/configs`             | Create a config (returns 409 if domain+urlPattern exists)         |
-| `GET`   | `/api/configs/lookup`      | Lookup by domain (query: `domain`, `url`, `executable`, `yolo`)   |
+| `GET`   | `/api/configs/lookup`      | Lookup by domain (query: `domain`, `url`, `executable`, `yolo`). Auth optional — also returns your own unverified configs   |
 | `GET`   | `/api/configs/:id`         | Get config by ID                                                  |
 | `PATCH` | `/api/configs/:id`         | Update config (auto-increments version)                           |
 | `POST`  | `/api/configs/:id/vote`    | Vote on a tool within a config                                    |

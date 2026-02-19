@@ -61,7 +61,9 @@ URL patterns are always in "domain/path" format — no protocol, no "www.", no C
 - "example.com" (domain-only) — matches ALL pages (lowest priority fallback)
 - "example.com/dashboard" — exact path match
 - "example.com/dashboard/:id" — dynamic segment
-- "example.com/admin/**" — wildcard prefix match`,
+- "example.com/admin/**" — wildcard prefix match
+
+By default, only verified configs are returned. If you are authenticated (via API key), your own unverified configs are also included automatically so you can test before verification. To see all unverified configs from everyone, set yolo=true.`,
     {
       domain: z.string().describe("Domain to look up, e.g. 'google.com'"),
       url: z.string().optional().describe("Current page URL for path-scoped matching"),
@@ -107,7 +109,7 @@ URL patterns are always in "domain/path" format — no protocol, no "www.", no C
   // list_configs (read)
   agent.server.tool(
     "list_configs",
-    "Browse and search all WebMCP configs in the hub.",
+    "Browse and search all WebMCP configs in the hub. By default only verified configs are returned. If authenticated, your own unverified configs are also included. Set yolo=true to see all configs including unverified ones from everyone.",
     {
       search: z
         .string()
