@@ -38,7 +38,8 @@ function rowToConfig(row: typeof configs.$inferSelect): WebMcpConfig {
     contributor: row.contributor,
     version: row.version,
     verified: allVerified,
-    verifiedToolNames: verifiedToolNames && verifiedToolNames.length > 0 ? verifiedToolNames : undefined,
+    verifiedToolNames:
+      verifiedToolNames && verifiedToolNames.length > 0 ? verifiedToolNames : undefined,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
     tags: row.tags ?? undefined,
@@ -66,7 +67,8 @@ function rowToVerifiedConfig(row: typeof configs.$inferSelect): WebMcpConfig {
     contributor: row.contributor,
     version: row.version,
     verified: allVerified,
-    verifiedToolNames: verifiedToolNames && verifiedToolNames.length > 0 ? verifiedToolNames : undefined,
+    verifiedToolNames:
+      verifiedToolNames && verifiedToolNames.length > 0 ? verifiedToolNames : undefined,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
     tags: row.tags ?? undefined,
@@ -258,8 +260,7 @@ export async function updateConfig(
         prunedVerified[name] = snapshot;
       }
     }
-    updates.verifiedTools =
-      Object.keys(prunedVerified).length > 0 ? prunedVerified : null;
+    updates.verifiedTools = Object.keys(prunedVerified).length > 0 ? prunedVerified : null;
   }
   if (input.contributor !== undefined) updates.contributor = input.contributor;
   if (input.tags !== undefined) updates.tags = input.tags;
