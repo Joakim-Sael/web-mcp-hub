@@ -64,6 +64,7 @@ function rowToVerifiedConfig(row: typeof configs.$inferSelect): WebMcpConfig {
     title: row.title,
     description: row.description,
     tools: verifiedTools,
+    totalToolCount: row.tools.length,
     contributor: row.contributor,
     version: row.version,
     verified: allVerified,
