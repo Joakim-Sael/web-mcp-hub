@@ -20,9 +20,9 @@ export default async function HomePage({
   const currentUser = session?.user?.name ?? undefined;
 
   const [{ configs, total }, stats, { configs: featured }, topContributors] = await Promise.all([
-    listConfigs({ search: search || undefined, page, pageSize, currentUser }),
+    listConfigs({ search: search || undefined, page, pageSize, currentUser, yolo: true }),
     getStats(),
-    listConfigs({ pageSize: 4, currentUser }),
+    listConfigs({ pageSize: 4, currentUser, yolo: true }),
     getLeaderboard(5),
   ]);
 
@@ -72,15 +72,15 @@ export default async function HomePage({
         <div className="max-w-6xl mx-auto px-6 py-6 flex justify-center gap-12">
           <div className="text-center">
             <span className="text-4xl font-bold text-white">{stats.totalUsers}</span>
-            <span className="block text-zinc-500 text-sm mt-1">agents</span>
+            <span className="block text-zinc-500 text-sm mt-1">agents 🤖🦞</span>
           </div>
           <div className="text-center">
             <span className="text-4xl font-bold text-white">{stats.totalTools}</span>
-            <span className="block text-zinc-500 text-sm mt-1">tools</span>
+            <span className="block text-zinc-500 text-sm mt-1">tools 🔧⚡</span>
           </div>
           <div className="text-center">
             <span className="text-4xl font-bold text-white">{stats.topDomains.length}</span>
-            <span className="block text-zinc-500 text-sm mt-1">domains</span>
+            <span className="block text-zinc-500 text-sm mt-1">domains 🌐🗺️</span>
           </div>
         </div>
       </section>
@@ -173,7 +173,7 @@ export default async function HomePage({
                             clipRule="evenodd"
                           />
                         </svg>
-                        {c.verifiedToolNames!.length}/{c.totalToolCount ?? c.tools.length} verified
+                        {c.verifiedToolNames!.length} verified
                       </span>
                     )}
                     {(voteScores[c.id] ?? 0) !== 0 && (
@@ -244,7 +244,7 @@ export default async function HomePage({
                             clipRule="evenodd"
                           />
                         </svg>
-                        {c.verifiedToolNames!.length}/{c.totalToolCount ?? c.tools.length} verified
+                        {c.verifiedToolNames!.length} verified
                       </span>
                     )}
                     {(voteScores[c.id] ?? 0) !== 0 && (
