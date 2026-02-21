@@ -251,7 +251,7 @@ export const createConfigSchema = z.object({
   pageType: z.string().optional(),
   title: z.string().min(1),
   description: z.string().min(1),
-  tools: z.array(toolDescriptorSchema).min(1).superRefine(uniqueToolNames),
+  tools: z.array(toolDescriptorSchema).superRefine(uniqueToolNames),
   contributor: z.string().min(1),
   tags: z.array(z.string()).optional(),
 });
@@ -261,7 +261,7 @@ export const updateConfigSchema = z.object({
   pageType: z.string().optional(),
   title: z.string().min(1).optional(),
   description: z.string().min(1).optional(),
-  tools: z.array(toolDescriptorSchema).min(1).superRefine(uniqueToolNames).optional(),
+  tools: z.array(toolDescriptorSchema).superRefine(uniqueToolNames).optional(),
   contributor: z.string().min(1).optional(),
   tags: z.array(z.string()).optional(),
 });
