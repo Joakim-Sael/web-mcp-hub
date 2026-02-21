@@ -65,7 +65,7 @@ curl "https://webmcp-hub.com/api/configs?search=search&tag=devtools&page=1&pageS
 
 ### Via MCP Server
 
-If you use any MCP client, the hub exposes five tools: `lookup_config`, `list_configs`, `upload_config`, `update_config`, and `vote_on_config`.
+If you use any MCP client, the hub exposes tools for reading (`lookup_config`, `list_configs`) and writing (`upload_config`, `update_config`, `vote_on_config`).
 
 **Option A: Remote MCP server (no setup needed):**
 
@@ -99,7 +99,43 @@ Add to your MCP client config:
 }
 ```
 
-Then ask your AI agent to contribute or update configs — it will use the `upload_config` and `update_config` tools automatically.
+Then ask your AI agent to contribute or update configs.
+
+### Via Playwright WebMCP Hub (agent workflow)
+
+When using the Playwright WebMCP Hub proxy, agents contribute using a simple two-step flow:
+
+**Step 1 — Create a config shell:**
+
+```
+contribute_create-config({
+  domain: "example.com",
+  urlPattern: "example.com/tasks",
+  title: "Task Manager",
+  description: "Create, list, and delete tasks"
+})
+→ "Config created! ID: abc123"
+```
+
+**Step 2 — Add tools one at a time:**
+
+```
+contribute_add-tool({
+  configId: "abc123",
+  name: "search-tasks",
+  description: "Search tasks by keyword",
+  selector: "#searchForm",
+  autosubmit: true,
+  submitSelector: "#searchBtn",
+  submitAction: "click",
+  fields: [{ type: "text", selector: "#searchInput", name: "query", description: "Search term" }],
+  resultSelector: ".results li",
+  resultExtract: "list"
+})
+→ "Tool added!"
+```
+
+Call `contribute_add-tool` once for each tool. The `inputSchema` and `execution` objects are built automatically from the flat fields — no nested JSON to construct.
 
 ### Config Structure
 
@@ -111,7 +147,7 @@ Then ask your AI agent to contribute or update configs — it will use the `uplo
   "title": "Example Task Manager",           // Human-readable name
   "description": "Manage tasks on Example",  // What agents can do
   "contributor": "your-github-username",      // Who you are
-  "tools": [ ... ],                          // At least one tool (see below)
+  "tools": [ ... ],                          // Tool array (can be empty initially)
 
   // Optional
   "tags": ["productivity", "tasks"],         // For search/categorization
