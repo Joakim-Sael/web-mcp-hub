@@ -4,5 +4,7 @@ dist
 .output
 .wxt
 .turbo
+.wrangler
+.claude
 supabase/migrations
 package-lock.json

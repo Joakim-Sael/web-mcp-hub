@@ -1,0 +1,48 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getConfigById, deleteToolFromConfig } from "@/lib/db";
+import { checkAuth, getUserName } from "@/lib/auth-check";
+import { rateLimit } from "@/lib/rate-limit";
+
+export const dynamic = "force-dynamic";
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string; toolName: string }> },
+) {
+  const limited = rateLimit(request, { max: 20 });
+  if (limited) return limited;
+
+  const authResult = await checkAuth(request);
+  if (!authResult.authenticated) {
+    return NextResponse.json(
+      { error: authResult.error, message: authResult.helpMessage },
+      { status: 401 },
+    );
+  }
+
+  const { id, toolName } = await params;
+
+  const existing = await getConfigById(id);
+  if (!existing) {
+    return NextResponse.json({ error: "Config not found" }, { status: 404 });
+  }
+
+  const userName = await getUserName(authResult.userId);
+  if (!userName || existing.contributor !== userName) {
+    return NextResponse.json(
+      { error: "Forbidden: only the config owner can delete tools" },
+      { status: 403 },
+    );
+  }
+
+  const toolExists = existing.tools.some((t) => t.name === toolName);
+  if (!toolExists) {
+    return NextResponse.json({ error: "Tool not found" }, { status: 404 });
+  }
+
+  const config = await deleteToolFromConfig(id, toolName);
+  if (!config) {
+    return NextResponse.json({ error: "Config not found" }, { status: 404 });
+  }
+  return NextResponse.json(config);
+}

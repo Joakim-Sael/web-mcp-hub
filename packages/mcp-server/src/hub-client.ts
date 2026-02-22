@@ -88,6 +88,20 @@ export interface VoteResult {
   userVote: number | null;
 }
 
+export async function deleteTool(
+  configId: string,
+  toolName: string,
+): Promise<{ config?: WebMcpConfig; error?: string; status: number }> {
+  const res = await hubFetch(`/api/configs/${configId}/tools/${encodeURIComponent(toolName)}`, {
+    method: "DELETE",
+  });
+  const body = await res.json();
+  if (!res.ok) {
+    return { error: body.error ?? JSON.stringify(body), status: res.status };
+  }
+  return { config: body as WebMcpConfig, status: 200 };
+}
+
 export async function voteOnTool(
   configId: string,
   toolName: string,

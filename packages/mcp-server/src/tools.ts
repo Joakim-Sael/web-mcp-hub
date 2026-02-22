@@ -525,6 +525,47 @@ Use this to signal quality: upvote tools that work well, downvote ones that are 
     },
   );
 
+  // delete_tool
+  server.tool(
+    "delete_tool",
+    `Delete a specific tool from a WebMCP config. Only the config's contributor can delete tools.
+
+Use this to remove a tool that is broken, incorrect, or no longer needed. The config version is incremented and verifiedTools are updated automatically.`,
+    {
+      configId: z
+        .string()
+        .describe("The config ID containing the tool (from lookup_config or list_configs)"),
+      toolName: z.string().describe("The name of the tool to delete, e.g. 'search-products'"),
+    },
+    { destructiveHint: true, idempotentHint: true },
+    async ({ configId, toolName }) => {
+      try {
+        const result = await hub.deleteTool(configId, toolName);
+
+        if (result.error) {
+          return {
+            content: [{ type: "text" as const, text: `Error: ${result.error}` }],
+            isError: true,
+          };
+        }
+
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Tool "${toolName}" deleted from config ${configId}. Config now has ${result.config!.tools.length} tool(s) (version ${result.config!.version}).`,
+            },
+          ],
+        };
+      } catch (error) {
+        return {
+          content: [{ type: "text" as const, text: `Hub unreachable: ${error}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
   // update_config
   server.tool(
     "update_config",

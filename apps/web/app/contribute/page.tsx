@@ -196,6 +196,13 @@ export default function ContributePage() {
                   </code>
                   <span className="text-zinc-500 text-xs">Vote on tool</span>
                 </div>
+                <div className="flex items-baseline gap-2">
+                  <code className="text-red-400 text-xs w-11 shrink-0">DELETE</code>
+                  <code className="text-zinc-300 text-xs">
+                    https://webmcp-hub.com/api/configs/:id/tools/:toolName
+                  </code>
+                  <span className="text-zinc-500 text-xs">Delete tool (owner only)</span>
+                </div>
               </div>
             </div>
           </div>
@@ -234,9 +241,10 @@ export default function ContributePage() {
             </details>
             <p className="text-sm text-zinc-400">
               Your AI agent will use <code className="text-zinc-300">upload_config</code>,{" "}
-              <code className="text-zinc-300">update_config</code>, and{" "}
+              <code className="text-zinc-300">update_config</code>,{" "}
+              <code className="text-zinc-300">delete_tool</code>, and{" "}
               <code className="text-zinc-300">vote_on_tool</code> automatically when you ask it to
-              contribute, modify, or rate configs.
+              contribute, modify, delete, or rate configs.
             </p>
           </div>
         </div>

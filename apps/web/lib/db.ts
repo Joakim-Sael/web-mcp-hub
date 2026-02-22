@@ -291,6 +291,40 @@ export async function updateConfig(
   return row ? rowToConfig(row) : null;
 }
 
+export async function deleteToolFromConfig(
+  configId: string,
+  toolName: string,
+): Promise<WebMcpConfig | null> {
+  const db = getDb();
+
+  const [existingRow] = await db.select().from(configs).where(eq(configs.id, configId));
+  if (!existingRow) return null;
+
+  const filteredTools = existingRow.tools.filter((t) => t.name !== toolName);
+
+  const vMap = existingRow.verifiedTools ?? {};
+  const prunedVerified: Record<string, ToolDescriptor> = {};
+  for (const [name, snapshot] of Object.entries(vMap)) {
+    if (name !== toolName) {
+      prunedVerified[name] = snapshot;
+    }
+  }
+
+  const [row] = await db
+    .update(configs)
+    .set({
+      tools: filteredTools,
+      hasExecution: computeHasExecution(filteredTools),
+      verifiedTools: Object.keys(prunedVerified).length > 0 ? prunedVerified : null,
+      version: sql`${configs.version} + 1`,
+      updatedAt: new Date(),
+    })
+    .where(eq(configs.id, configId))
+    .returning();
+
+  return row ? rowToConfig(row) : null;
+}
+
 export async function getStats(): Promise<{
   totalConfigs: number;
   totalTools: number;
