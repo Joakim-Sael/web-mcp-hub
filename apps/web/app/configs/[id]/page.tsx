@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getConfigById, getToolVotesBatch } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { VoteButtons } from "@/components/vote-buttons";
+import { DeleteToolButton } from "@/components/delete-tool-button";
 
 export const dynamic = "force-dynamic";
 import type { ExecutionDescriptor } from "@web-mcp-hub/db";
@@ -22,6 +23,7 @@ export default async function ConfigDetailPage({ params }: { params: Promise<{ i
   if (!config) notFound();
   const toolNames = config.tools.map((t) => t.name);
   const toolVotes = await getToolVotesBatch(id, toolNames, session?.user?.id);
+  const isOwner = !!session?.user?.name && session.user.name === config.contributor;
 
   return (
     <section className="max-w-5xl mx-auto px-6 py-8">
@@ -126,13 +128,16 @@ export default async function ConfigDetailPage({ params }: { params: Promise<{ i
                     </span>
                   )}
                 </h3>
-                <VoteButtons
-                  configId={config.id}
-                  toolName={tool.name}
-                  score={toolVotes[tool.name]?.score ?? 0}
-                  userVote={toolVotes[tool.name]?.userVote ?? null}
-                  isAuthenticated={!!session?.user}
-                />
+                <div className="flex items-center gap-2">
+                  <VoteButtons
+                    configId={config.id}
+                    toolName={tool.name}
+                    score={toolVotes[tool.name]?.score ?? 0}
+                    userVote={toolVotes[tool.name]?.userVote ?? null}
+                    isAuthenticated={!!session?.user}
+                  />
+                  {isOwner && <DeleteToolButton configId={config.id} toolName={tool.name} />}
+                </div>
               </div>
               <p className="text-sm text-zinc-400 mb-3">{tool.description}</p>
 
