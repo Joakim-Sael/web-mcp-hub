@@ -3,8 +3,65 @@ import Image from "next/image";
 import { listConfigs, getStats, getLeaderboard, getConfigVoteSummaries } from "@/lib/db";
 import { IntegrationTabs } from "@/components/integration-tabs";
 import { auth } from "@/lib/auth";
+import type { WebMcpConfig } from "@web-mcp-hub/db";
 
 export const dynamic = "force-dynamic";
+
+type DomainGroup = {
+  domain: string;
+  configs: WebMcpConfig[];
+  totalTools: number;
+  totalVerified: number;
+  totalVoteScore: number;
+  urlPatterns: string[];
+  tags: string[];
+  description: string;
+};
+
+function groupByDomain(
+  configs: WebMcpConfig[],
+  voteScores: Record<string, number>,
+): DomainGroup[] {
+  const map = new Map<string, DomainGroup>();
+  for (const c of configs) {
+    const existing = map.get(c.domain);
+    const toolCount = c.totalToolCount ?? c.tools.length;
+    const verifiedCount = c.verifiedToolNames?.length ?? 0;
+    const voteScore = voteScores[c.id] ?? 0;
+    if (existing) {
+      existing.configs.push(c);
+      existing.totalTools += toolCount;
+      existing.totalVerified += verifiedCount;
+      existing.totalVoteScore += voteScore;
+      existing.urlPatterns.push(c.urlPattern);
+      if (c.tags) {
+        for (const tag of c.tags) {
+          if (!existing.tags.includes(tag)) existing.tags.push(tag);
+        }
+      }
+    } else {
+      map.set(c.domain, {
+        domain: c.domain,
+        configs: [c],
+        totalTools: toolCount,
+        totalVerified: verifiedCount,
+        totalVoteScore: voteScore,
+        urlPatterns: [c.urlPattern],
+        tags: c.tags ? [...c.tags] : [],
+        description: c.description,
+      });
+    }
+  }
+  return Array.from(map.values());
+}
+
+function getPathFromPattern(domain: string, urlPattern: string): string {
+  if (urlPattern.startsWith(domain)) {
+    const path = urlPattern.slice(domain.length);
+    return path || "/";
+  }
+  return urlPattern;
+}
 
 export default async function HomePage({
   searchParams,
@@ -30,6 +87,9 @@ export default async function HomePage({
   const voteScores = await getConfigVoteSummaries(allConfigIds);
 
   const totalPages = Math.ceil(total / pageSize);
+
+  const featuredGroups = groupByDomain(featured, voteScores);
+  const browseGroups = groupByDomain(configs, voteScores);
 
   return (
     <>
@@ -137,34 +197,28 @@ export default async function HomePage({
       )}
 
       {/* Highlighted configs */}
-      {featured.length > 0 && !search && (
+      {featuredGroups.length > 0 && !search && (
         <section className="max-w-6xl mx-auto px-6 pt-14 pb-4">
           <h2 className="text-2xl font-bold text-white mb-1">Highlighted configs</h2>
           <p className="text-zinc-400 mb-6">
             Community-curated — latest configurations for popular websites.
           </p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {featured.map((c) => (
-              <Link key={c.id} href={`/configs/${c.id}`} className="block group">
+            {featuredGroups.map((g) => (
+              <Link key={g.domain} href={`/domains/${g.domain}`} className="block group">
                 <article className="p-4 bg-zinc-900 border border-zinc-800 rounded-lg hover:border-zinc-600 transition-colors h-full">
                   <span className="inline-block text-[0.65rem] font-medium px-2 py-0.5 rounded bg-blue-500/15 text-blue-400 mb-3">
                     Highlighted
                   </span>
                   <h3 className="text-white font-semibold mb-1 group-hover:text-blue-400 transition-colors">
-                    {c.title}
+                    {g.domain}
                   </h3>
-                  <p className="text-sm text-zinc-400 line-clamp-2">{c.description}</p>
+                  <p className="text-sm text-zinc-400 line-clamp-2">{g.description}</p>
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-3 text-xs text-zinc-500">
-                    <span className="bg-zinc-800 px-1.5 py-0.5 rounded">{c.domain}</span>
-                    {(() => {
-                      const total = c.totalToolCount ?? c.tools.length;
-                      return (
-                        <span className="text-zinc-500">
-                          {total} tool{total !== 1 ? "s" : ""}
-                        </span>
-                      );
-                    })()}
-                    {(c.verifiedToolNames?.length ?? 0) > 0 && (
+                    <span className="text-zinc-500">
+                      {g.totalTools} tool{g.totalTools !== 1 ? "s" : ""}
+                    </span>
+                    {g.totalVerified > 0 && (
                       <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-green-500/10 text-green-400">
                         <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
                           <path
@@ -173,17 +227,29 @@ export default async function HomePage({
                             clipRule="evenodd"
                           />
                         </svg>
-                        {c.verifiedToolNames!.length} verified
+                        {g.totalVerified} verified
                       </span>
                     )}
-                    {(voteScores[c.id] ?? 0) !== 0 && (
+                    {g.totalVoteScore !== 0 && (
                       <span
-                        className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded ${voteScores[c.id] > 0 ? "text-blue-400" : "text-red-400"}`}
+                        className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded ${g.totalVoteScore > 0 ? "text-blue-400" : "text-red-400"}`}
                       >
-                        {voteScores[c.id] > 0 ? "\u25B2" : "\u25BC"} {Math.abs(voteScores[c.id])}
+                        {g.totalVoteScore > 0 ? "\u25B2" : "\u25BC"} {Math.abs(g.totalVoteScore)}
                       </span>
                     )}
                   </div>
+                  {g.urlPatterns.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {g.urlPatterns.map((p) => (
+                        <span
+                          key={p}
+                          className="text-[0.65rem] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded font-mono"
+                        >
+                          {getPathFromPattern(g.domain, p)}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </article>
               </Link>
             ))}
@@ -214,28 +280,26 @@ export default async function HomePage({
           </button>
         </form>
 
-        {configs.length === 0 ? (
+        {browseGroups.length === 0 ? (
           <p className="text-zinc-500 text-center py-12">
             No configs found. Be the first to contribute!
           </p>
         ) : (
           <div className="space-y-3">
-            {configs.map((c) => (
-              <Link key={c.id} href={`/configs/${c.id}`} className="block">
+            {browseGroups.map((g) => (
+              <Link key={g.domain} href={`/domains/${g.domain}`} className="block">
                 <article className="p-5 bg-zinc-900 border border-zinc-800 rounded-lg hover:border-zinc-600 transition-colors">
-                  <h3 className="text-lg font-semibold text-white mb-1">{c.title}</h3>
+                  <h3 className="text-lg font-semibold text-white mb-1">{g.domain}</h3>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-400 mb-2">
-                    <span className="bg-zinc-800 px-2 py-0.5 rounded">{c.domain}</span>
-                    {(() => {
-                      const total = c.totalToolCount ?? c.tools.length;
-                      return (
-                        <span className="text-zinc-500">
-                          {total} tool{total !== 1 ? "s" : ""}
-                        </span>
-                      );
-                    })()}
-                    <span className="text-zinc-600">v{c.version}</span>
-                    {(c.verifiedToolNames?.length ?? 0) > 0 && (
+                    <span className="text-zinc-500">
+                      {g.totalTools} tool{g.totalTools !== 1 ? "s" : ""}
+                    </span>
+                    {g.configs.length > 1 && (
+                      <span className="text-zinc-500">
+                        {g.configs.length} config{g.configs.length !== 1 ? "s" : ""}
+                      </span>
+                    )}
+                    {g.totalVerified > 0 && (
                       <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-green-500/10 text-green-400">
                         <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
                           <path
@@ -244,21 +308,33 @@ export default async function HomePage({
                             clipRule="evenodd"
                           />
                         </svg>
-                        {c.verifiedToolNames!.length} verified
+                        {g.totalVerified} verified
                       </span>
                     )}
-                    {(voteScores[c.id] ?? 0) !== 0 && (
+                    {g.totalVoteScore !== 0 && (
                       <span
-                        className={`inline-flex items-center gap-0.5 ${voteScores[c.id] > 0 ? "text-blue-400" : "text-red-400"}`}
+                        className={`inline-flex items-center gap-0.5 ${g.totalVoteScore > 0 ? "text-blue-400" : "text-red-400"}`}
                       >
-                        {voteScores[c.id] > 0 ? "\u25B2" : "\u25BC"} {Math.abs(voteScores[c.id])}
+                        {g.totalVoteScore > 0 ? "\u25B2" : "\u25BC"} {Math.abs(g.totalVoteScore)}
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-zinc-400">{c.description}</p>
-                  {c.tags && c.tags.length > 0 && (
+                  <p className="text-sm text-zinc-400">{g.description}</p>
+                  {g.urlPatterns.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {g.urlPatterns.map((p) => (
+                        <span
+                          key={p}
+                          className="text-xs bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded font-mono"
+                        >
+                          {getPathFromPattern(g.domain, p)}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {g.tags.length > 0 && (
                     <div className="flex gap-1.5 mt-2">
-                      {c.tags.map((tag) => (
+                      {g.tags.map((tag) => (
                         <span
                           key={tag}
                           className="text-xs bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded"
