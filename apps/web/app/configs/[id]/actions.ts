@@ -1,7 +1,7 @@
 "use server";
 
 import { auth } from "@/lib/auth";
-import { upsertToolVote } from "@/lib/db";
+import { upsertToolVote, getConfigById } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 
 export async function voteOnTool(formData: FormData): Promise<{ error?: string }> {
@@ -25,6 +25,11 @@ export async function voteOnTool(formData: FormData): Promise<{ error?: string }
   }
 
   await upsertToolVote(session.user.id, configId, toolName, vote);
+
+  const config = await getConfigById(configId);
   revalidatePath(`/configs/${configId}`);
+  if (config) {
+    revalidatePath(`/domains/${config.domain}`);
+  }
   return {};
 }

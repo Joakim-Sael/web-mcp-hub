@@ -25,9 +25,17 @@ export default async function ConfigDetailPage({ params }: { params: Promise<{ i
 
   return (
     <section className="max-w-5xl mx-auto px-6 py-8">
-      <Link href="/" className="text-sm text-blue-400 hover:text-blue-300 mb-4 inline-block">
-        &larr; Back to all configs
-      </Link>
+      <div className="flex gap-4 mb-4">
+        <Link href="/" className="text-sm text-blue-400 hover:text-blue-300 inline-block">
+          &larr; All configs
+        </Link>
+        <Link
+          href={`/domains/${config.domain}`}
+          className="text-sm text-blue-400 hover:text-blue-300 inline-block"
+        >
+          &larr; {config.domain}
+        </Link>
+      </div>
 
       <h1 className="text-2xl font-bold text-white mb-2">{config.title}</h1>
 
