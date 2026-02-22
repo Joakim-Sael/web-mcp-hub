@@ -18,10 +18,7 @@ type DomainGroup = {
   description: string;
 };
 
-function groupByDomain(
-  configs: WebMcpConfig[],
-  voteScores: Record<string, number>,
-): DomainGroup[] {
+function groupByDomain(configs: WebMcpConfig[], voteScores: Record<string, number>): DomainGroup[] {
   const map = new Map<string, DomainGroup>();
   for (const c of configs) {
     const existing = map.get(c.domain);

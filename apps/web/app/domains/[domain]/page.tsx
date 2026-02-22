@@ -56,17 +56,9 @@ export default async function DomainDetailPage({
   );
 
   // Aggregate stats
-  const totalTools = allConfigs.reduce(
-    (sum, c) => sum + (c.totalToolCount ?? c.tools.length),
-    0,
-  );
-  const totalVerified = allConfigs.reduce(
-    (sum, c) => sum + (c.verifiedToolNames?.length ?? 0),
-    0,
-  );
-  const allTags = [
-    ...new Set(allConfigs.flatMap((c) => c.tags ?? [])),
-  ];
+  const totalTools = allConfigs.reduce((sum, c) => sum + (c.totalToolCount ?? c.tools.length), 0);
+  const totalVerified = allConfigs.reduce((sum, c) => sum + (c.verifiedToolNames?.length ?? 0), 0);
+  const allTags = [...new Set(allConfigs.flatMap((c) => c.tags ?? []))];
 
   return (
     <section className="max-w-5xl mx-auto px-6 py-8">
@@ -127,9 +119,7 @@ export default async function DomainDetailPage({
         return (
           <div key={config.id} className="mb-8">
             <div className="flex items-center gap-3 mb-3">
-              <h2 className="text-lg font-semibold text-white">
-                {config.title}
-              </h2>
+              <h2 className="text-lg font-semibold text-white">{config.title}</h2>
               <span className="text-xs bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded font-mono">
                 {patternPath}
               </span>
