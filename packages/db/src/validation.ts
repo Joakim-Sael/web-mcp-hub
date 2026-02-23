@@ -144,6 +144,7 @@ export const executionDescriptorSchema = z.object({
   steps: z.array(actionStepSchema).optional(),
   resultDelay: z.number().optional(),
   resultWaitSelector: z.string().optional(),
+  resultRequired: z.boolean().optional(),
 });
 
 // ---------------------------------------------------------------------------
