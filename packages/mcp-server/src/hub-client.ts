@@ -1,6 +1,6 @@
 import type { WebMcpConfig, ConfigListResponse } from "@web-mcp-hub/db";
 
-const HUB_BASE = process.env.HUB_URL ?? "http://localhost:3000";
+const HUB_BASE = process.env.HUB_URL ?? "https://www.webmcp-hub.com";
 const HUB_API_KEY = process.env.HUB_API_KEY;
 
 async function hubFetch(path: string, init?: RequestInit): Promise<Response> {

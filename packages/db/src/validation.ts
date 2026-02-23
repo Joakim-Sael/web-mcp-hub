@@ -101,6 +101,11 @@ const scrollStepSchema = z.object({
   selector: z.string().min(1),
 });
 
+const evaluateStepSchema = z.object({
+  action: z.literal("evaluate"),
+  value: z.string().min(1),
+});
+
 // Use z.lazy for the recursive ConditionStep
 const conditionStepSchema: z.ZodType = z.object({
   action: z.literal("condition"),
@@ -118,6 +123,7 @@ export const actionStepSchema: z.ZodType = z.discriminatedUnion("action", [
   waitStepSchema,
   extractStepSchema,
   scrollStepSchema,
+  evaluateStepSchema,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   conditionStepSchema as any, // z.lazy requires cast within discriminatedUnion
 ]);
