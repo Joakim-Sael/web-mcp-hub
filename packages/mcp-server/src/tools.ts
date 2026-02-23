@@ -78,7 +78,9 @@ const executionSchema = z
             value: z
               .string()
               .optional()
-              .describe("Value for fill/select steps, supports {{paramName}}. For evaluate steps: the JS code string to execute in the page context (e.g. \"document.querySelector('.banner').remove()\")"),
+              .describe(
+                "Value for fill/select steps, supports {{paramName}}. For evaluate steps: the JS code string to execute in the page context (e.g. \"document.querySelector('.banner').remove()\")",
+              ),
             state: z
               .enum(["visible", "exists", "hidden"])
               .optional()
