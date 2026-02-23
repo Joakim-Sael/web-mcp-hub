@@ -13,6 +13,7 @@ export default [
       "**/.next/**",
       "**/.output/**",
       "**/.wxt/**",
+      "**/.wrangler/**",
       "**/.turbo/**",
       "supabase/**",
       "**/*.d.ts",
