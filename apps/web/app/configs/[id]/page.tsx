@@ -23,7 +23,9 @@ export default async function ConfigDetailPage({ params }: { params: Promise<{ i
   if (!config) notFound();
   const toolNames = config.tools.map((t) => t.name);
   const toolVotes = await getToolVotesBatch(id, toolNames, session?.user?.id);
-  const isOwner = !!session?.user?.name && session.user.name === config.contributor;
+  const isConfigOwner = !!session?.user?.name && session.user.name === config.contributor;
+  const canDeleteTool = (tool: { contributor?: string }) =>
+    isConfigOwner || (!!session?.user?.name && session.user.name === tool.contributor);
 
   return (
     <section className="max-w-5xl mx-auto px-6 py-8">
@@ -136,9 +138,14 @@ export default async function ConfigDetailPage({ params }: { params: Promise<{ i
                     userVote={toolVotes[tool.name]?.userVote ?? null}
                     isAuthenticated={!!session?.user}
                   />
-                  {isOwner && <DeleteToolButton configId={config.id} toolName={tool.name} />}
+                  {canDeleteTool(tool) && (
+                    <DeleteToolButton configId={config.id} toolName={tool.name} />
+                  )}
                 </div>
               </div>
+              {tool.contributor && (
+                <p className="text-xs text-zinc-500 mb-1">by {tool.contributor}</p>
+              )}
               <p className="text-sm text-zinc-400 mb-3">{tool.description}</p>
 
               <details className="mb-2">

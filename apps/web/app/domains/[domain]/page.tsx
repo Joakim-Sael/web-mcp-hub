@@ -189,6 +189,9 @@ export default async function DomainDetailPage({
                         isAuthenticated={!!session?.user}
                       />
                     </div>
+                    {tool.contributor && (
+                      <p className="text-xs text-zinc-500 mb-1">by {tool.contributor}</p>
+                    )}
                     <p className="text-sm text-zinc-400 mb-3">{tool.description}</p>
 
                     <details className="mb-2">

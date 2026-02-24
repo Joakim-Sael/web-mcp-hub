@@ -2,12 +2,14 @@ import { eq, and, like, or, sql, desc, inArray } from "drizzle-orm";
 import {
   getDb,
   configs,
+  tools,
   users,
   configVotes,
   rankConfigsByUrl,
   type WebMcpConfig,
   type CreateConfigInput,
   type UpdateConfigInput,
+  type AddToolInput,
   type ToolDescriptor,
 } from "@web-mcp-hub/db";
 
@@ -19,14 +21,22 @@ export type LeaderboardEntry = {
   toolCount: number;
 };
 
-function rowToConfig(row: typeof configs.$inferSelect): WebMcpConfig {
-  const vMap = row.verifiedTools ?? {};
-  const allVerified = row.tools.length > 0 && row.tools.every((t) => t.name in vMap);
-  // Only include verified names for tools that actually exist in the tools array
-  const currentToolNames = new Set(row.tools.map((t) => t.name));
-  const verifiedToolNames = row.verifiedTools
-    ? Object.keys(row.verifiedTools).filter((name) => currentToolNames.has(name))
-    : undefined;
+function toolRowToDescriptor(t: typeof tools.$inferSelect): ToolDescriptor {
+  return {
+    name: t.name,
+    description: t.description,
+    inputSchema: t.inputSchema,
+    annotations: t.annotations ?? undefined,
+    execution: t.execution ?? undefined,
+    contributor: t.contributor,
+  };
+}
+
+function rowToConfig(
+  row: typeof configs.$inferSelect,
+  toolRows: (typeof tools.$inferSelect)[],
+): WebMcpConfig {
+  const verifiedToolNames = toolRows.filter((t) => t.verified).map((t) => t.name);
   return {
     id: row.id,
     domain: row.domain,
@@ -34,28 +44,23 @@ function rowToConfig(row: typeof configs.$inferSelect): WebMcpConfig {
     pageType: row.pageType ?? undefined,
     title: row.title,
     description: row.description,
-    tools: row.tools,
+    tools: toolRows.map(toolRowToDescriptor),
     contributor: row.contributor,
     version: row.version,
-    verified: allVerified,
-    verifiedToolNames:
-      verifiedToolNames && verifiedToolNames.length > 0 ? verifiedToolNames : undefined,
+    verified: toolRows.length > 0 && toolRows.every((t) => t.verified),
+    verifiedToolNames: verifiedToolNames.length > 0 ? verifiedToolNames : undefined,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
     tags: row.tags ?? undefined,
   };
 }
 
-function rowToVerifiedConfig(row: typeof configs.$inferSelect): WebMcpConfig {
-  const vMap = row.verifiedTools ?? {};
-  // Only include tools that have a verified snapshot, using the snapshot version
-  const verifiedTools = row.tools.filter((t) => t.name in vMap).map((t) => vMap[t.name]);
-  const allVerified = row.tools.length > 0 && row.tools.every((t) => t.name in vMap);
-  // Only report verified names for tools that still exist in the tools array
-  const currentToolNames = new Set(row.tools.map((t) => t.name));
-  const verifiedToolNames = row.verifiedTools
-    ? Object.keys(row.verifiedTools).filter((name) => currentToolNames.has(name))
-    : undefined;
+function rowToVerifiedConfig(
+  row: typeof configs.$inferSelect,
+  toolRows: (typeof tools.$inferSelect)[],
+): WebMcpConfig {
+  const verifiedToolRows = toolRows.filter((t) => t.verified);
+  const verifiedToolNames = verifiedToolRows.map((t) => t.name);
   return {
     id: row.id,
     domain: row.domain,
@@ -63,21 +68,28 @@ function rowToVerifiedConfig(row: typeof configs.$inferSelect): WebMcpConfig {
     pageType: row.pageType ?? undefined,
     title: row.title,
     description: row.description,
-    tools: verifiedTools,
-    totalToolCount: row.tools.length,
+    tools: verifiedToolRows.map(toolRowToDescriptor),
+    totalToolCount: toolRows.length,
     contributor: row.contributor,
     version: row.version,
-    verified: allVerified,
-    verifiedToolNames:
-      verifiedToolNames && verifiedToolNames.length > 0 ? verifiedToolNames : undefined,
+    verified: toolRows.length > 0 && toolRows.every((t) => t.verified),
+    verifiedToolNames: verifiedToolNames.length > 0 ? verifiedToolNames : undefined,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
     tags: row.tags ?? undefined,
   };
 }
 
-function computeHasExecution(tools: ToolDescriptor[]): number {
-  return tools.some((t) => t.execution) ? 1 : 0;
+async function getToolsForConfigIds(
+  configIds: string[],
+): Promise<Map<string, (typeof tools.$inferSelect)[]>> {
+  if (configIds.length === 0) return new Map();
+  const db = getDb();
+  const rows = await db.select().from(tools).where(inArray(tools.configId, configIds));
+  const map = new Map<string, (typeof tools.$inferSelect)[]>();
+  for (const id of configIds) map.set(id, []);
+  for (const row of rows) map.get(row.configId)!.push(row);
+  return map;
 }
 
 export async function listConfigs(opts: {
@@ -98,7 +110,7 @@ export async function listConfigs(opts: {
   const conditions = [];
 
   if (!yolo) {
-    const isVerified = sql`${configs.verifiedTools} IS NOT NULL AND ${configs.verifiedTools} != '{}'::jsonb`;
+    const isVerified = sql`EXISTS (SELECT 1 FROM tools WHERE config_id = ${configs.id} AND verified = true)`;
     if (opts.currentUser) {
       conditions.push(or(isVerified, eq(configs.contributor, opts.currentUser))!);
     } else {
@@ -137,12 +149,16 @@ export async function listConfigs(opts: {
     .limit(pageSize)
     .offset(offset);
 
+  const toolsMap = await getToolsForConfigIds(rows.map((r) => r.id));
+
   const mapper = yolo
-    ? rowToConfig
+    ? (row: typeof configs.$inferSelect) => rowToConfig(row, toolsMap.get(row.id) ?? [])
     : opts.currentUser
       ? (row: typeof configs.$inferSelect) =>
-          row.contributor === opts.currentUser ? rowToConfig(row) : rowToVerifiedConfig(row)
-      : rowToVerifiedConfig;
+          row.contributor === opts.currentUser
+            ? rowToConfig(row, toolsMap.get(row.id) ?? [])
+            : rowToVerifiedConfig(row, toolsMap.get(row.id) ?? [])
+      : (row: typeof configs.$inferSelect) => rowToVerifiedConfig(row, toolsMap.get(row.id) ?? []);
 
   return {
     configs: rows.map(mapper),
@@ -161,10 +177,12 @@ export async function lookupByDomain(
 
   const conditions = [eq(configs.domain, normalized)];
   if (opts?.executable) {
-    conditions.push(eq(configs.hasExecution, 1));
+    conditions.push(
+      sql`EXISTS (SELECT 1 FROM tools WHERE config_id = ${configs.id} AND execution IS NOT NULL)`,
+    );
   }
   if (!yolo) {
-    const isVerified = sql`${configs.verifiedTools} IS NOT NULL AND ${configs.verifiedTools} != '{}'::jsonb`;
+    const isVerified = sql`EXISTS (SELECT 1 FROM tools WHERE config_id = ${configs.id} AND verified = true)`;
     if (opts?.currentUser) {
       conditions.push(or(isVerified, eq(configs.contributor, opts.currentUser))!);
     } else {
@@ -172,33 +190,36 @@ export async function lookupByDomain(
     }
   }
 
-  // Fetch all configs for this domain
   const rows = await db
     .select()
     .from(configs)
     .where(and(...conditions))
     .orderBy(desc(configs.updatedAt));
 
+  const toolsMap = await getToolsForConfigIds(rows.map((r) => r.id));
+
   const mapper = yolo
-    ? rowToConfig
+    ? (row: typeof configs.$inferSelect) => rowToConfig(row, toolsMap.get(row.id) ?? [])
     : opts?.currentUser
       ? (row: typeof configs.$inferSelect) =>
-          row.contributor === opts.currentUser ? rowToConfig(row) : rowToVerifiedConfig(row)
-      : rowToVerifiedConfig;
+          row.contributor === opts.currentUser
+            ? rowToConfig(row, toolsMap.get(row.id) ?? [])
+            : rowToVerifiedConfig(row, toolsMap.get(row.id) ?? [])
+      : (row: typeof configs.$inferSelect) => rowToVerifiedConfig(row, toolsMap.get(row.id) ?? []);
+
   const allConfigs = rows.map(mapper);
 
-  // Without a URL, return everything for the domain
   if (!url) return allConfigs;
 
-  // Rank configs by URL pattern specificity (most specific first).
-  // Supports :param dynamic segments and ** wildcards in urlPattern.
   return rankConfigsByUrl(allConfigs, url, normalized);
 }
 
 export async function getConfigById(id: string): Promise<WebMcpConfig | null> {
   const db = getDb();
   const [row] = await db.select().from(configs).where(eq(configs.id, id));
-  return row ? rowToConfig(row) : null;
+  if (!row) return null;
+  const toolsMap = await getToolsForConfigIds([id]);
+  return rowToConfig(row, toolsMap.get(id) ?? []);
 }
 
 export async function findByDomainAndPattern(
@@ -211,7 +232,9 @@ export async function findByDomainAndPattern(
     .select()
     .from(configs)
     .where(and(eq(configs.domain, normalized), eq(configs.urlPattern, urlPattern)));
-  return row ? rowToConfig(row) : null;
+  if (!row) return null;
+  const toolsMap = await getToolsForConfigIds([row.id]);
+  return rowToConfig(row, toolsMap.get(row.id) ?? []);
 }
 
 export async function countConfigsByContributor(contributor: string): Promise<number> {
@@ -226,7 +249,6 @@ export async function countConfigsByContributor(contributor: string): Promise<nu
 export async function createConfig(input: CreateConfigInput): Promise<WebMcpConfig> {
   const db = getDb();
   const normalized = input.domain.toLowerCase().replace(/^www\./, "");
-  const hasExecution = computeHasExecution(input.tools);
   const now = new Date();
 
   const [row] = await db
@@ -237,18 +259,36 @@ export async function createConfig(input: CreateConfigInput): Promise<WebMcpConf
       pageType: input.pageType ?? null,
       title: input.title,
       description: input.description,
-      tools: input.tools,
       contributor: input.contributor,
       version: 1,
       tags: input.tags ?? null,
-      hasExecution,
-      verifiedTools: null,
       createdAt: now,
       updatedAt: now,
     })
     .returning();
 
-  return rowToConfig(row);
+  let toolRows: (typeof tools.$inferSelect)[] = [];
+  if (input.tools.length > 0) {
+    toolRows = await db
+      .insert(tools)
+      .values(
+        input.tools.map((t) => ({
+          configId: row.id,
+          name: t.name,
+          description: t.description,
+          inputSchema: t.inputSchema,
+          annotations: t.annotations ?? null,
+          execution: t.execution ?? null,
+          contributor: input.contributor,
+          verified: false,
+          createdAt: now,
+          updatedAt: now,
+        })),
+      )
+      .returning();
+  }
+
+  return rowToConfig(row, toolRows);
 }
 
 export async function updateConfig(
@@ -256,10 +296,6 @@ export async function updateConfig(
   input: UpdateConfigInput,
 ): Promise<WebMcpConfig | null> {
   const db = getDb();
-
-  // Fetch the raw DB row so we can merge tools and sync verifiedTools
-  const [existingRow] = await db.select().from(configs).where(eq(configs.id, id));
-  if (!existingRow) return null;
 
   const updates: Record<string, unknown> = {
     version: sql`${configs.version} + 1`,
@@ -270,34 +306,44 @@ export async function updateConfig(
   if (input.title !== undefined) updates.title = input.title;
   if (input.description !== undefined) updates.description = input.description;
   if (input.pageType !== undefined) updates.pageType = input.pageType;
-  if (input.tools !== undefined) {
-    // Merge by tool name: incoming tools override existing ones with the same
-    // name, new tools are appended, existing tools not in the update are kept.
-    const toolMap = new Map(existingRow.tools.map((t) => [t.name, t]));
-    for (const t of input.tools) {
-      toolMap.set(t.name, t);
-    }
-    const mergedTools = Array.from(toolMap.values());
-    updates.tools = mergedTools;
-    updates.hasExecution = computeHasExecution(mergedTools);
-
-    // Prune verifiedTools to only keep entries for tools still present
-    const vMap = existingRow.verifiedTools ?? {};
-    const mergedNames = new Set(mergedTools.map((t) => t.name));
-    const prunedVerified: Record<string, ToolDescriptor> = {};
-    for (const [name, snapshot] of Object.entries(vMap)) {
-      if (mergedNames.has(name)) {
-        prunedVerified[name] = snapshot;
-      }
-    }
-    updates.verifiedTools = Object.keys(prunedVerified).length > 0 ? prunedVerified : null;
-  }
   if (input.contributor !== undefined) updates.contributor = input.contributor;
   if (input.tags !== undefined) updates.tags = input.tags;
 
   const [row] = await db.update(configs).set(updates).where(eq(configs.id, id)).returning();
+  if (!row) return null;
 
-  return row ? rowToConfig(row) : null;
+  const toolsMap = await getToolsForConfigIds([id]);
+  return rowToConfig(row, toolsMap.get(id) ?? []);
+}
+
+export async function addToolToConfig(
+  configId: string,
+  tool: AddToolInput,
+  contributor: string,
+): Promise<ToolDescriptor | null> {
+  const db = getDb();
+  const now = new Date();
+
+  const [inserted] = await db
+    .insert(tools)
+    .values({
+      configId,
+      name: tool.name,
+      description: tool.description,
+      inputSchema: tool.inputSchema,
+      annotations: tool.annotations ?? null,
+      execution: tool.execution ?? null,
+      contributor,
+      verified: false,
+      createdAt: now,
+      updatedAt: now,
+    })
+    .onConflictDoNothing()
+    .returning();
+
+  if (!inserted) return null; // name already taken in this config
+
+  return toolRowToDescriptor(inserted);
 }
 
 export async function deleteToolFromConfig(
@@ -306,32 +352,13 @@ export async function deleteToolFromConfig(
 ): Promise<WebMcpConfig | null> {
   const db = getDb();
 
-  const [existingRow] = await db.select().from(configs).where(eq(configs.id, configId));
-  if (!existingRow) return null;
+  const [configRow] = await db.select().from(configs).where(eq(configs.id, configId));
+  if (!configRow) return null;
 
-  const filteredTools = existingRow.tools.filter((t) => t.name !== toolName);
+  await db.delete(tools).where(and(eq(tools.configId, configId), eq(tools.name, toolName)));
 
-  const vMap = existingRow.verifiedTools ?? {};
-  const prunedVerified: Record<string, ToolDescriptor> = {};
-  for (const [name, snapshot] of Object.entries(vMap)) {
-    if (name !== toolName) {
-      prunedVerified[name] = snapshot;
-    }
-  }
-
-  const [row] = await db
-    .update(configs)
-    .set({
-      tools: filteredTools,
-      hasExecution: computeHasExecution(filteredTools),
-      verifiedTools: Object.keys(prunedVerified).length > 0 ? prunedVerified : null,
-      version: sql`${configs.version} + 1`,
-      updatedAt: new Date(),
-    })
-    .where(eq(configs.id, configId))
-    .returning();
-
-  return row ? rowToConfig(row) : null;
+  const toolsMap = await getToolsForConfigIds([configId]);
+  return rowToConfig(configRow, toolsMap.get(configId) ?? []);
 }
 
 export async function getStats(): Promise<{
@@ -343,14 +370,8 @@ export async function getStats(): Promise<{
   const db = getDb();
 
   const [countResult] = await db.select({ count: sql<number>`count(*)` }).from(configs);
-
   const [userCountResult] = await db.select({ count: sql<number>`count(*)` }).from(users);
-
-  const [toolCountResult] = await db
-    .select({
-      total: sql<number>`coalesce(sum(jsonb_array_length(${configs.tools})), 0)`,
-    })
-    .from(configs);
+  const [toolCountResult] = await db.select({ total: sql<number>`count(*)` }).from(tools);
 
   const topDomains = await db
     .select({
@@ -378,15 +399,15 @@ export async function getLeaderboard(limit: number = 50): Promise<LeaderboardEnt
 
   const rows = await db
     .select({
-      contributor: configs.contributor,
+      contributor: tools.contributor,
       image: users.image,
-      configCount: sql<number>`count(*)`,
-      toolCount: sql<number>`coalesce(sum(jsonb_array_length(${configs.tools})), 0)`,
+      toolCount: sql<number>`count(*)`,
+      configCount: sql<number>`(SELECT count(*) FROM configs WHERE contributor = ${tools.contributor})`,
     })
-    .from(configs)
-    .leftJoin(users, eq(configs.contributor, users.name))
-    .groupBy(configs.contributor, users.image)
-    .orderBy(sql`count(*) desc`, sql`coalesce(sum(jsonb_array_length(${configs.tools})), 0) desc`)
+    .from(tools)
+    .leftJoin(users, eq(tools.contributor, users.name))
+    .groupBy(tools.contributor, users.image)
+    .orderBy(sql`count(*) desc`)
     .limit(limit);
 
   return rows.map((row, i) => ({
