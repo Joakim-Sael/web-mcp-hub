@@ -5,9 +5,9 @@ import { z } from "zod";
 // ---------------------------------------------------------------------------
 
 const fieldBase = {
-  selector: z.string().min(1),
-  name: z.string().min(1),
-  description: z.string().min(1),
+  selector: z.string().min(1).max(500),
+  name: z.string().min(1).max(100),
+  description: z.string().min(1).max(2000),
   required: z.boolean().optional(),
   defaultValue: z.union([z.string(), z.number(), z.boolean()]).optional(),
 };
@@ -17,29 +17,29 @@ const numberFieldSchema = z.object({ ...fieldBase, type: z.literal("number") });
 const textareaFieldSchema = z.object({ ...fieldBase, type: z.literal("textarea") });
 
 const selectOptionSchema = z.object({
-  value: z.string(),
-  label: z.string(),
+  value: z.string().max(100),
+  label: z.string().max(200),
 });
 
 const selectFieldSchema = z.object({
   ...fieldBase,
   type: z.literal("select"),
-  options: z.array(selectOptionSchema).optional(),
+  options: z.array(selectOptionSchema).max(100).optional(),
   dynamicOptions: z.boolean().optional(),
 });
 
 const checkboxFieldSchema = z.object({ ...fieldBase, type: z.literal("checkbox") });
 
 const radioOptionSchema = z.object({
-  value: z.string(),
-  label: z.string(),
-  selector: z.string().min(1),
+  value: z.string().max(100),
+  label: z.string().max(200),
+  selector: z.string().min(1).max(500),
 });
 
 const radioFieldSchema = z.object({
   ...fieldBase,
   type: z.literal("radio"),
-  options: z.array(radioOptionSchema).min(1),
+  options: z.array(radioOptionSchema).min(1).max(50),
 });
 
 const dateFieldSchema = z.object({ ...fieldBase, type: z.literal("date") });
@@ -62,57 +62,57 @@ export const toolFieldSchema = z.discriminatedUnion("type", [
 
 const navigateStepSchema = z.object({
   action: z.literal("navigate"),
-  url: z.string().min(1),
+  url: z.string().min(1).max(2048),
 });
 
 const clickStepSchema = z.object({
   action: z.literal("click"),
-  selector: z.string().min(1),
+  selector: z.string().min(1).max(500),
 });
 
 const fillStepSchema = z.object({
   action: z.literal("fill"),
-  selector: z.string().min(1),
-  value: z.string(),
+  selector: z.string().min(1).max(500),
+  value: z.string().max(10000),
 });
 
 const selectStepSchema = z.object({
   action: z.literal("select"),
-  selector: z.string().min(1),
-  value: z.string(),
+  selector: z.string().min(1).max(500),
+  value: z.string().max(500),
 });
 
 const waitStepSchema = z.object({
   action: z.literal("wait"),
-  selector: z.string().min(1),
+  selector: z.string().min(1).max(500),
   state: z.enum(["visible", "exists", "hidden"]).optional(),
   timeout: z.number().optional(),
 });
 
 const extractStepSchema = z.object({
   action: z.literal("extract"),
-  selector: z.string().min(1),
+  selector: z.string().min(1).max(500),
   extract: z.enum(["text", "html", "list", "table", "attribute"]),
-  attribute: z.string().optional(),
+  attribute: z.string().max(200).optional(),
 });
 
 const scrollStepSchema = z.object({
   action: z.literal("scroll"),
-  selector: z.string().min(1),
+  selector: z.string().min(1).max(500),
 });
 
 const evaluateStepSchema = z.object({
   action: z.literal("evaluate"),
-  value: z.string().min(1),
+  value: z.string().min(1).max(10000),
 });
 
 // Use z.lazy for the recursive ConditionStep
 const conditionStepSchema: z.ZodType = z.object({
   action: z.literal("condition"),
-  selector: z.string().min(1),
+  selector: z.string().min(1).max(500),
   state: z.enum(["visible", "exists", "hidden"]),
-  then: z.lazy(() => z.array(actionStepSchema)),
-  else: z.lazy(() => z.array(actionStepSchema)).optional(),
+  then: z.lazy(() => z.array(actionStepSchema).max(20)),
+  else: z.lazy(() => z.array(actionStepSchema).max(20)).optional(),
 });
 
 export const actionStepSchema: z.ZodType = z.discriminatedUnion("action", [
@@ -133,17 +133,17 @@ export const actionStepSchema: z.ZodType = z.discriminatedUnion("action", [
 // ---------------------------------------------------------------------------
 
 export const executionDescriptorSchema = z.object({
-  selector: z.string().min(1),
-  fields: z.array(toolFieldSchema).optional(),
+  selector: z.string().min(1).max(500),
+  fields: z.array(toolFieldSchema).max(20).optional(),
   autosubmit: z.boolean(),
   submitAction: z.enum(["click", "enter"]).optional(),
-  submitSelector: z.string().optional(),
-  resultSelector: z.string().optional(),
+  submitSelector: z.string().max(500).optional(),
+  resultSelector: z.string().max(500).optional(),
   resultExtract: z.enum(["text", "html", "attribute", "table", "list"]).optional(),
-  resultAttribute: z.string().optional(),
-  steps: z.array(actionStepSchema).optional(),
+  resultAttribute: z.string().max(200).optional(),
+  steps: z.array(actionStepSchema).max(50).optional(),
   resultDelay: z.number().optional(),
-  resultWaitSelector: z.string().optional(),
+  resultWaitSelector: z.string().max(500).optional(),
   resultRequired: z.boolean().optional(),
 });
 
@@ -154,8 +154,8 @@ export const executionDescriptorSchema = z.object({
 const jsonSchemaPropertySchema: z.ZodType = z.lazy(() =>
   z
     .object({
-      type: z.string(),
-      description: z.string().optional(),
+      type: z.string().max(50),
+      description: z.string().max(1000).optional(),
       enum: z.array(z.unknown()).optional(),
       items: z.record(z.unknown()).optional(),
       properties: z.record(jsonSchemaPropertySchema).optional(),
@@ -170,7 +170,16 @@ const inputSchemaSchema = z
     properties: z.record(jsonSchemaPropertySchema).default({}),
     required: z.array(z.string()).optional(),
   })
-  .passthrough();
+  .passthrough()
+  .superRefine((schema, ctx) => {
+    if (Object.keys(schema.properties as Record<string, unknown>).length > 20) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "inputSchema may have at most 20 properties",
+        path: ["properties"],
+      });
+    }
+  });
 
 // ---------------------------------------------------------------------------
 // Tool & Config schemas (execution added to toolDescriptorSchema)
@@ -178,10 +187,10 @@ const inputSchemaSchema = z
 
 export const toolDescriptorSchema = z
   .object({
-    name: z.string().min(1),
-    description: z.string().min(1),
+    name: z.string().min(1).max(100),
+    description: z.string().min(1).max(2000),
     inputSchema: inputSchemaSchema,
-    annotations: z.record(z.string()).optional(),
+    annotations: z.record(z.string().max(500)).optional(),
     execution: executionDescriptorSchema.optional(),
   })
   .superRefine((tool, ctx) => {
@@ -253,24 +262,25 @@ export const createConfigSchema = z.object({
   domain: z
     .string()
     .min(1)
+    .max(253)
     .transform((d) => d.toLowerCase().replace(/^www\./, "")),
-  urlPattern: z.string().min(1).transform(normalizeUrlPattern),
-  pageType: z.string().optional(),
-  title: z.string().min(1),
-  description: z.string().min(1),
-  tools: z.array(toolDescriptorSchema).superRefine(uniqueToolNames),
-  contributor: z.string().min(1),
-  tags: z.array(z.string()).optional(),
+  urlPattern: z.string().min(1).max(2048).transform(normalizeUrlPattern),
+  pageType: z.string().max(100).optional(),
+  title: z.string().min(1).max(200),
+  description: z.string().min(1).max(5000),
+  tools: z.array(toolDescriptorSchema).max(30).superRefine(uniqueToolNames),
+  contributor: z.string().min(1).max(39),
+  tags: z.array(z.string().max(50)).max(10).optional(),
 });
 
 export const updateConfigSchema = z.object({
-  urlPattern: z.string().min(1).transform(normalizeUrlPattern).optional(),
-  pageType: z.string().optional(),
-  title: z.string().min(1).optional(),
-  description: z.string().min(1).optional(),
-  tools: z.array(toolDescriptorSchema).superRefine(uniqueToolNames).optional(),
-  contributor: z.string().min(1).optional(),
-  tags: z.array(z.string()).optional(),
+  urlPattern: z.string().min(1).max(2048).transform(normalizeUrlPattern).optional(),
+  pageType: z.string().max(100).optional(),
+  title: z.string().min(1).max(200).optional(),
+  description: z.string().min(1).max(5000).optional(),
+  tools: z.array(toolDescriptorSchema).max(30).superRefine(uniqueToolNames).optional(),
+  contributor: z.string().min(1).max(39).optional(),
+  tags: z.array(z.string().max(50)).max(10).optional(),
 });
 
 export type CreateConfigInput = z.infer<typeof createConfigSchema>;

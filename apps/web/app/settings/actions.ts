@@ -17,6 +17,9 @@ export async function createApiKey(formData: FormData): Promise<{ key?: string; 
   if (!label || label.trim().length === 0) {
     return { error: "Label is required" };
   }
+  if (label.trim().length > 100) {
+    return { error: "Label must be 100 characters or fewer" };
+  }
 
   const rawBytes = randomBytes(30);
   const randomPart = rawBytes.toString("base64url").slice(0, 40);

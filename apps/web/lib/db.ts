@@ -214,6 +214,15 @@ export async function findByDomainAndPattern(
   return row ? rowToConfig(row) : null;
 }
 
+export async function countConfigsByContributor(contributor: string): Promise<number> {
+  const db = getDb();
+  const [result] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(configs)
+    .where(eq(configs.contributor, contributor));
+  return Number(result.count);
+}
+
 export async function createConfig(input: CreateConfigInput): Promise<WebMcpConfig> {
   const db = getDb();
   const normalized = input.domain.toLowerCase().replace(/^www\./, "");

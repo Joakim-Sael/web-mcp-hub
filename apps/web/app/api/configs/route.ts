@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createConfigSchema } from "@web-mcp-hub/db";
-import { listConfigs, findByDomainAndPattern, createConfig } from "@/lib/db";
+import {
+  listConfigs,
+  findByDomainAndPattern,
+  createConfig,
+  countConfigsByContributor,
+} from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 import { checkAuth, getUserName } from "@/lib/auth-check";
@@ -43,6 +48,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const MAX_BODY_SIZE = 512 * 1024; // 512KB
+  const contentLength = parseInt(request.headers.get("content-length") ?? "0", 10);
+  if (contentLength > MAX_BODY_SIZE) {
+    return NextResponse.json({ error: "Request body too large" }, { status: 413 });
+  }
+
   const body = await request.json();
   const parsed = createConfigSchema.safeParse(body);
   if (!parsed.success) {
@@ -53,6 +64,14 @@ export async function POST(request: NextRequest) {
   const userName = await getUserName(authResult.userId);
   if (userName) {
     parsed.data.contributor = userName;
+  }
+
+  const configCount = await countConfigsByContributor(parsed.data.contributor);
+  if (configCount >= 50) {
+    return NextResponse.json(
+      { error: "Config limit reached: maximum 50 configs per user" },
+      { status: 403 },
+    );
   }
 
   const existing = await findByDomainAndPattern(parsed.data.domain, parsed.data.urlPattern);

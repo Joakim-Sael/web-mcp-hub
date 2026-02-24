@@ -45,6 +45,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     );
   }
 
+  const MAX_BODY_SIZE = 512 * 1024; // 512KB
+  const contentLength = parseInt(request.headers.get("content-length") ?? "0", 10);
+  if (contentLength > MAX_BODY_SIZE) {
+    return NextResponse.json({ error: "Request body too large" }, { status: 413 });
+  }
+
   const body = await request.json();
   const parsed = updateConfigSchema.safeParse(body);
   if (!parsed.success) {
