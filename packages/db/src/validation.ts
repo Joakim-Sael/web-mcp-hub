@@ -185,15 +185,15 @@ const inputSchemaSchema = z
 // Tool & Config schemas (execution added to toolDescriptorSchema)
 // ---------------------------------------------------------------------------
 
-export const toolDescriptorSchema = z
-  .object({
-    name: z.string().min(1).max(100),
-    description: z.string().min(1).max(2000),
-    inputSchema: inputSchemaSchema,
-    annotations: z.record(z.string().max(500)).optional(),
-    execution: executionDescriptorSchema.optional(),
-  })
-  .superRefine((tool, ctx) => {
+const toolDescriptorObjectSchema = z.object({
+  name: z.string().min(1).max(100),
+  description: z.string().min(1).max(2000),
+  inputSchema: inputSchemaSchema,
+  annotations: z.record(z.string().max(500)).optional(),
+  execution: executionDescriptorSchema.optional(),
+});
+
+export const toolDescriptorSchema = toolDescriptorObjectSchema.superRefine((tool, ctx) => {
     if (!tool.execution) return;
     const schemaProps = Object.keys((tool.inputSchema.properties as Record<string, unknown>) ?? {});
 
@@ -285,7 +285,9 @@ export const updateConfigSchema = z.object({
 
 // contributor is set server-side from the auth token, not accepted from the request body
 export const addToolSchema = toolDescriptorSchema;
+export const updateToolSchema = toolDescriptorObjectSchema.omit({ name: true }).partial();
 
 export type CreateConfigInput = z.infer<typeof createConfigSchema>;
 export type UpdateConfigInput = z.infer<typeof updateConfigSchema>;
 export type AddToolInput = z.infer<typeof addToolSchema>;
+export type UpdateToolInput = z.infer<typeof updateToolSchema>;

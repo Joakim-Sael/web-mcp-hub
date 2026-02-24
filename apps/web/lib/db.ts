@@ -10,6 +10,7 @@ import {
   type CreateConfigInput,
   type UpdateConfigInput,
   type AddToolInput,
+  type UpdateToolInput,
   type ToolDescriptor,
 } from "@web-mcp-hub/db";
 
@@ -349,7 +350,7 @@ export async function addToolToConfig(
 export async function updateToolInConfig(
   configId: string,
   toolName: string,
-  input: Partial<Omit<AddToolInput, "name">>,
+  input: UpdateToolInput,
 ): Promise<ToolDescriptor | null> {
   const db = getDb();
   const updates: Record<string, unknown> = { updatedAt: new Date() };

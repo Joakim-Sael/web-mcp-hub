@@ -37,9 +37,10 @@ export {
   createConfigSchema,
   updateConfigSchema,
   addToolSchema,
+  updateToolSchema,
 } from "./validation.js";
 
-export type { CreateConfigInput, UpdateConfigInput, AddToolInput } from "./validation.js";
+export type { CreateConfigInput, UpdateConfigInput, AddToolInput, UpdateToolInput } from "./validation.js";
 
 export { deriveInputSchema } from "./derive-schema.js";
 

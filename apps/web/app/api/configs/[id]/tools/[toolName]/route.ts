@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { addToolSchema } from "@web-mcp-hub/db";
+import { updateToolSchema } from "@web-mcp-hub/db";
 import { getConfigById, deleteToolFromConfig, updateToolInConfig } from "@/lib/db";
 import { checkAuth, getUserName } from "@/lib/auth-check";
 import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
-
-const updateToolSchema = addToolSchema.omit({ name: true }).partial();
 
 export async function PATCH(
   request: NextRequest,
