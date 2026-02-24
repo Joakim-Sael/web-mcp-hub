@@ -185,58 +185,58 @@ const inputSchemaSchema = z
 // Tool & Config schemas (execution added to toolDescriptorSchema)
 // ---------------------------------------------------------------------------
 
-export const toolDescriptorSchema = z
-  .object({
-    name: z.string().min(1).max(100),
-    description: z.string().min(1).max(2000),
-    inputSchema: inputSchemaSchema,
-    annotations: z.record(z.string().max(500)).optional(),
-    execution: executionDescriptorSchema.optional(),
-  })
-  .superRefine((tool, ctx) => {
-    if (!tool.execution) return;
-    const schemaProps = Object.keys((tool.inputSchema.properties as Record<string, unknown>) ?? {});
+const toolDescriptorObjectSchema = z.object({
+  name: z.string().min(1).max(100),
+  description: z.string().min(1).max(2000),
+  inputSchema: inputSchemaSchema,
+  annotations: z.record(z.string().max(500)).optional(),
+  execution: executionDescriptorSchema.optional(),
+});
 
-    // Validate execution field names map to inputSchema properties
-    if (tool.execution.fields) {
-      for (let i = 0; i < tool.execution.fields.length; i++) {
-        const fieldName = tool.execution.fields[i].name;
-        if (!schemaProps.includes(fieldName)) {
+export const toolDescriptorSchema = toolDescriptorObjectSchema.superRefine((tool, ctx) => {
+  if (!tool.execution) return;
+  const schemaProps = Object.keys((tool.inputSchema.properties as Record<string, unknown>) ?? {});
+
+  // Validate execution field names map to inputSchema properties
+  if (tool.execution.fields) {
+    for (let i = 0; i < tool.execution.fields.length; i++) {
+      const fieldName = tool.execution.fields[i].name;
+      if (!schemaProps.includes(fieldName)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Execution field "${fieldName}" does not match any inputSchema property. Available: ${schemaProps.join(", ") || "(none)"}`,
+          path: ["execution", "fields", i, "name"],
+        });
+      }
+    }
+  }
+
+  // Validate {{paramName}} template variables in steps and selectors
+  if (schemaProps.length > 0 && tool.execution.steps) {
+    const templateRe = /\{\{(\w+)\}\}/g;
+    const checkTemplates = (value: string, path: (string | number)[]) => {
+      let m: RegExpExecArray | null;
+      while ((m = templateRe.exec(value)) !== null) {
+        if (!schemaProps.includes(m[1])) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: `Execution field "${fieldName}" does not match any inputSchema property. Available: ${schemaProps.join(", ") || "(none)"}`,
-            path: ["execution", "fields", i, "name"],
+            message: `Template variable "{{${m[1]}}}" does not match any inputSchema property. Available: ${schemaProps.join(", ")}`,
+            path,
           });
         }
       }
-    }
+    };
 
-    // Validate {{paramName}} template variables in steps and selectors
-    if (schemaProps.length > 0 && tool.execution.steps) {
-      const templateRe = /\{\{(\w+)\}\}/g;
-      const checkTemplates = (value: string, path: (string | number)[]) => {
-        let m: RegExpExecArray | null;
-        while ((m = templateRe.exec(value)) !== null) {
-          if (!schemaProps.includes(m[1])) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              message: `Template variable "{{${m[1]}}}" does not match any inputSchema property. Available: ${schemaProps.join(", ")}`,
-              path,
-            });
-          }
-        }
-      };
-
-      for (let i = 0; i < tool.execution.steps.length; i++) {
-        const step = tool.execution.steps[i] as Record<string, unknown>;
-        const basePath = ["execution", "steps", i];
-        if (typeof step.url === "string") checkTemplates(step.url, [...basePath, "url"]);
-        if (typeof step.value === "string") checkTemplates(step.value, [...basePath, "value"]);
-        if (typeof step.selector === "string")
-          checkTemplates(step.selector, [...basePath, "selector"]);
-      }
+    for (let i = 0; i < tool.execution.steps.length; i++) {
+      const step = tool.execution.steps[i] as Record<string, unknown>;
+      const basePath = ["execution", "steps", i];
+      if (typeof step.url === "string") checkTemplates(step.url, [...basePath, "url"]);
+      if (typeof step.value === "string") checkTemplates(step.value, [...basePath, "value"]);
+      if (typeof step.selector === "string")
+        checkTemplates(step.selector, [...basePath, "selector"]);
     }
-  });
+  }
+});
 
 /** Strip protocol and trailing slashes from a URL pattern so it's always "domain/path" */
 function normalizeUrlPattern(val: string): string {
@@ -285,7 +285,9 @@ export const updateConfigSchema = z.object({
 
 // contributor is set server-side from the auth token, not accepted from the request body
 export const addToolSchema = toolDescriptorSchema;
+export const updateToolSchema = toolDescriptorObjectSchema.omit({ name: true }).partial();
 
 export type CreateConfigInput = z.infer<typeof createConfigSchema>;
 export type UpdateConfigInput = z.infer<typeof updateConfigSchema>;
 export type AddToolInput = z.infer<typeof addToolSchema>;
+export type UpdateToolInput = z.infer<typeof updateToolSchema>;
