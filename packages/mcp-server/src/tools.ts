@@ -70,6 +70,7 @@ const executionSchema = z
                 "extract",
                 "scroll",
                 "condition",
+                "evaluate",
               ])
               .describe("The action type for this step"),
             selector: z.string().optional().describe("CSS selector (required for most actions)"),
@@ -77,7 +78,9 @@ const executionSchema = z
             value: z
               .string()
               .optional()
-              .describe("Value for fill/select steps, supports {{paramName}}"),
+              .describe(
+                "Value for fill/select steps, supports {{paramName}}. For evaluate steps: the JS code string to execute in the page context (e.g. \"document.querySelector('.banner').remove()\")",
+              ),
             state: z
               .enum(["visible", "exists", "hidden"])
               .optional()
@@ -109,6 +112,12 @@ const executionSchema = z
       .string()
       .optional()
       .describe("CSS selector to wait for before reading result"),
+    resultRequired: z
+      .boolean()
+      .optional()
+      .describe(
+        "If true, the tool fails with an error when resultWaitSelector times out instead of silently returning empty. Use when empty results indicate a real failure (e.g. a search that should always return something).",
+      ),
   })
   .optional()
   .describe(
@@ -306,12 +315,16 @@ Maps tool parameters to DOM elements via CSS selectors. Two modes:
   - resultSelector + resultExtract: where and how to read the result ("text"|"html"|"list"|"table"|"attribute")
 
 **Multi-step mode** — steps[] array overrides simple mode:
-  - Each step has an "action": navigate, click, fill, select, wait, extract, scroll, condition
+  - Each step has an "action": navigate, click, fill, select, wait, extract, scroll, condition, evaluate
+  - "evaluate" runs arbitrary JavaScript in the page context via value (e.g. { "action": "evaluate", "value": "document.querySelector('.cookie-banner').remove()" }). Use as a last resort when standard actions are blocked by overlays or non-standard DOM behavior.
   - Use {{paramName}} in url/value/selector for parameter interpolation
 
 **Special selector support**:
   - :has-text("...") — matches elements containing text, e.g. 'li:has-text("{{target}}") .delete-btn'
     This is NOT standard CSS but is supported by our extension for text-based element matching.
+  - Shadow DOM — selectors automatically pierce shadow roots, so elements inside web components
+    (Shoelace sl-button, Material Web mwc-input, Ionic ion-item, etc.) are fully supported.
+    Write selectors normally; deep traversal is handled by the runtime transparently.
 
 ## Example Config
 
