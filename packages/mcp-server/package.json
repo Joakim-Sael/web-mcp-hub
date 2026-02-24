@@ -15,9 +15,9 @@
     "dev": "tsx watch src/index.ts"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.26.0",
+    "@modelcontextprotocol/sdk": "^1.27.0",
     "@web-mcp-hub/db": "*",
-    "express": "^4.21.0"
+    "express": "^5.2.1"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
