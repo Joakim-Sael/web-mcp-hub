@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createConfigSchema } from "@web-mcp-hub/db";
-import { listConfigs, findByDomainAndPattern, createConfig, countConfigsByContributor } from "@/lib/db";
+import {
+  listConfigs,
+  findByDomainAndPattern,
+  createConfig,
+  countConfigsByContributor,
+} from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 import { checkAuth, getUserName } from "@/lib/auth-check";
