@@ -346,6 +346,29 @@ export async function addToolToConfig(
   return toolRowToDescriptor(inserted);
 }
 
+export async function updateToolInConfig(
+  configId: string,
+  toolName: string,
+  input: Partial<Omit<AddToolInput, "name">>,
+): Promise<ToolDescriptor | null> {
+  const db = getDb();
+  const updates: Record<string, unknown> = { updatedAt: new Date() };
+
+  if (input.description !== undefined) updates.description = input.description;
+  if (input.inputSchema !== undefined) updates.inputSchema = input.inputSchema;
+  if (input.annotations !== undefined) updates.annotations = input.annotations ?? null;
+  if (input.execution !== undefined) updates.execution = input.execution ?? null;
+
+  const [updated] = await db
+    .update(tools)
+    .set(updates)
+    .where(and(eq(tools.configId, configId), eq(tools.name, toolName)))
+    .returning();
+
+  if (!updated) return null;
+  return toolRowToDescriptor(updated);
+}
+
 export async function deleteToolFromConfig(
   configId: string,
   toolName: string,
@@ -355,7 +378,18 @@ export async function deleteToolFromConfig(
   const [configRow] = await db.select().from(configs).where(eq(configs.id, configId));
   if (!configRow) return null;
 
-  await db.delete(tools).where(and(eq(tools.configId, configId), eq(tools.name, toolName)));
+  const deleted = await db
+    .delete(tools)
+    .where(and(eq(tools.configId, configId), eq(tools.name, toolName)))
+    .returning();
+
+  if (deleted.length > 0) {
+    const remaining = await db.select().from(tools).where(eq(tools.configId, configId));
+    if (remaining.length === 0) {
+      await db.delete(configs).where(eq(configs.id, configId));
+      return null;
+    }
+  }
 
   const toolsMap = await getToolsForConfigIds([configId]);
   return rowToConfig(configRow, toolsMap.get(configId) ?? []);
