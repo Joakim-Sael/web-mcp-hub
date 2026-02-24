@@ -3,12 +3,14 @@ import {
   uuid,
   text,
   jsonb,
+  boolean,
   integer,
   timestamp,
   index,
+  uniqueIndex,
   primaryKey,
 } from "drizzle-orm/pg-core";
-import type { ToolDescriptor } from "./types.js";
+import type { ExecutionDescriptor } from "./types.js";
 
 export const configs = pgTable(
   "configs",
@@ -19,18 +21,36 @@ export const configs = pgTable(
     pageType: text("page_type"),
     title: text("title").notNull(),
     description: text("description").notNull(),
-    tools: jsonb("tools").$type<ToolDescriptor[]>().notNull(),
     contributor: text("contributor").notNull(),
     version: integer("version").default(1).notNull(),
     tags: jsonb("tags").$type<string[]>(),
-    hasExecution: integer("has_execution").default(0).notNull(),
-    verifiedTools: jsonb("verified_tools").$type<Record<string, ToolDescriptor>>(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     index("idx_configs_domain").on(table.domain),
-    index("idx_configs_has_execution").on(table.hasExecution),
+  ],
+).enableRLS();
+
+export const tools = pgTable(
+  "tools",
+  {
+    id:          uuid("id").primaryKey().defaultRandom(),
+    configId:    uuid("config_id").notNull().references(() => configs.id, { onDelete: "cascade" }),
+    name:        text("name").notNull(),
+    description: text("description").notNull(),
+    inputSchema: jsonb("input_schema").$type<Record<string, unknown>>().notNull(),
+    annotations: jsonb("annotations").$type<Record<string, string>>(),
+    execution:   jsonb("execution").$type<ExecutionDescriptor>(),
+    contributor: text("contributor").notNull(),
+    verified:    boolean("verified").default(false).notNull(),
+    createdAt:   timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt:   timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("uq_tools_config_name").on(table.configId, table.name),
+    index("idx_tools_config_id").on(table.configId),
+    index("idx_tools_contributor").on(table.contributor),
   ],
 ).enableRLS();
 

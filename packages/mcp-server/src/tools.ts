@@ -451,7 +451,7 @@ Maps tool parameters to DOM elements via CSS selectors. Two modes:
             content: [
               {
                 type: "text" as const,
-                text: `A config already exists for this domain+urlPattern. Existing config ID: ${result.existingId}. Use update_config to modify it.`,
+                text: `A config already exists for this domain+urlPattern. Existing config ID: ${result.existingId}. Use contribute_tool to add a tool to it, or update_config to update metadata.`,
               },
             ],
             isError: true,
@@ -541,9 +541,9 @@ Use this to signal quality: upvote tools that work well, downvote ones that are 
   // delete_tool
   server.tool(
     "delete_tool",
-    `Delete a specific tool from a WebMCP config. Only the config's contributor can delete tools.
+    `Delete a specific tool from a WebMCP config. The config owner or the tool's own contributor can delete it.
 
-Use this to remove a tool that is broken, incorrect, or no longer needed. The config version is incremented and verifiedTools are updated automatically.`,
+Use this to remove a tool that is broken, incorrect, or no longer needed.`,
     {
       configId: z
         .string()
@@ -579,48 +579,119 @@ Use this to remove a tool that is broken, incorrect, or no longer needed. The co
     },
   );
 
+  // contribute_tool
+  server.tool(
+    "contribute_tool",
+    `Add a single tool to an existing WebMCP config. Any authenticated user can contribute tools to any config — you do not need to be the config owner.
+
+Use lookup_config or list_configs to find the configId first. If upload_config returns a 409, use the existingId from that response as the configId here.
+
+Tool schema rules:
+- **name**: kebab-case with a verb, e.g. "search-tweets", "add-to-cart". Must be unique within the config (returns 409 if taken).
+- **description**: What the tool does and when to use it.
+- **inputSchema**: Valid JSON Schema object. Each property must be an object with at least a "type" field.
+  CORRECT: {"type":"object","properties":{"query":{"type":"string","description":"Search term"}},"required":["query"]}
+  WRONG:   {"type":"object","properties":{"query":"string"}} ← raw string, not a schema object
+- **annotations**: Optional hints — readOnlyHint, destructiveHint, idempotentHint, openWorldHint.
+- **execution**: Optional CSS selector metadata for the Chrome extension (same format as upload_config).`,
+    {
+      configId: z
+        .string()
+        .describe("The config to add the tool to (from lookup_config or list_configs)"),
+      name: z
+        .string()
+        .describe("Kebab-case tool name with a specific verb, e.g. 'search-tweets'"),
+      description: z.string().describe("What the tool does and when to use it"),
+      inputSchema: z
+        .object({
+          type: z.literal("object").describe("Must be 'object'"),
+          properties: z
+            .record(
+              z.string(),
+              z
+                .object({ type: z.string() })
+                .passthrough()
+                .describe("Each property must be a schema object with at least a 'type' field"),
+            )
+            .default({})
+            .describe(
+              "Property definitions — each value must be a schema object like {type:'string',description:'...'}",
+            ),
+          required: z
+            .array(z.string())
+            .optional()
+            .describe("List of required property names"),
+        })
+        .passthrough()
+        .describe(
+          "JSON Schema object. E.g. {type:'object', properties:{query:{type:'string',description:'Search query'}}, required:['query']}",
+        ),
+      annotations: z
+        .record(z.string(), z.string())
+        .optional()
+        .describe("Optional hints: readOnlyHint, destructiveHint, idempotentHint, openWorldHint"),
+      execution: executionSchema,
+    },
+    { idempotentHint: false },
+    async ({ configId, ...toolData }) => {
+      try {
+        const result = await hub.contributeTool(configId, toolData);
+
+        if (result.status === 409) {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: `A tool named "${toolData.name}" already exists in config ${configId}. Use a different name or delete the existing tool first.`,
+              },
+            ],
+            isError: true,
+          };
+        }
+
+        if (result.error) {
+          return {
+            content: [{ type: "text" as const, text: `Error: ${result.error}` }],
+            isError: true,
+          };
+        }
+
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Tool "${result.tool!.name}" contributed successfully to config ${configId}.`,
+            },
+          ],
+        };
+      } catch (error) {
+        return {
+          content: [{ type: "text" as const, text: `Hub unreachable: ${error}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
   // update_config
   server.tool(
     "update_config",
-    `Update an existing WebMCP config by ID. Auto-increments the version number. When updating tools, provide the COMPLETE tools array (it replaces, not merges).
+    `Update an existing WebMCP config's metadata by ID. Auto-increments the version number. Only updates config-level fields: title, description, pageType, urlPattern, tags.
 
-CRITICAL: Every tool's inputSchema must be valid JSON Schema. Each property must be a schema object like {"type":"string","description":"..."}, never a raw value like 200 or "string".
+To add a tool to a config, use contribute_tool. To remove a tool, use delete_tool.
 
-CRITICAL: urlPattern must be in "domain/path" format (e.g. "youtube.com/**"). NEVER use Chrome extension match patterns like "*://www.youtube.com/*" — these will break URL matching in the extension.
-
-See upload_config for full schema rules, execution metadata docs, and examples.`,
+CRITICAL: urlPattern must be in "domain/path" format (e.g. "youtube.com/**"). NEVER use Chrome extension match patterns like "*://www.youtube.com/*" — these will break URL matching in the extension.`,
     {
       id: z.string().describe("The config ID to update (from lookup_config or list_configs)"),
       title: z.string().optional().describe("New title"),
       description: z.string().optional().describe("New description"),
       pageType: z.string().optional().describe("New page type"),
-      tools: z
-        .array(
-          z.object({
-            name: z.string().describe("Kebab-case tool name with a specific verb"),
-            description: z.string().describe("What the tool does and when to use it"),
-            inputSchema: z
-              .object({
-                type: z.literal("object").describe("Must be 'object'"),
-                properties: z
-                  .record(z.string(), z.object({ type: z.string() }).passthrough())
-                  .default({})
-                  .describe(
-                    "Property definitions — each value must be a schema object with a 'type' field",
-                  ),
-                required: z.array(z.string()).optional(),
-              })
-              .passthrough()
-              .describe("JSON Schema object with type, properties, and required"),
-            annotations: z
-              .record(z.string(), z.string())
-              .optional()
-              .describe("Optional hints: readOnlyHint, destructiveHint, etc."),
-            execution: executionSchema,
-          }),
-        )
+      urlPattern: z
+        .string()
         .optional()
-        .describe("Complete replacement tools array — provide all tools, not just changed ones"),
+        .describe(
+          "New URL pattern in 'domain/path' format, e.g. 'example.com/dashboard'. NEVER use Chrome extension match patterns.",
+        ),
       contributor: z.string().optional().describe("Contributor name"),
       tags: z.array(z.string()).optional().describe("Updated tags"),
     },

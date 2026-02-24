@@ -27,17 +27,20 @@ export async function DELETE(
     return NextResponse.json({ error: "Config not found" }, { status: 404 });
   }
 
-  const userName = await getUserName(authResult.userId);
-  if (!userName || existing.contributor !== userName) {
-    return NextResponse.json(
-      { error: "Forbidden: only the config owner can delete tools" },
-      { status: 403 },
-    );
+  const tool = existing.tools.find((t) => t.name === toolName);
+  if (!tool) {
+    return NextResponse.json({ error: "Tool not found" }, { status: 404 });
   }
 
-  const toolExists = existing.tools.some((t) => t.name === toolName);
-  if (!toolExists) {
-    return NextResponse.json({ error: "Tool not found" }, { status: 404 });
+  const userName = await getUserName(authResult.userId);
+  const isConfigOwner = userName === existing.contributor;
+  const isToolContributor = userName === tool.contributor;
+
+  if (!isConfigOwner && !isToolContributor) {
+    return NextResponse.json(
+      { error: "Forbidden: only the config owner or the tool's contributor can delete this tool" },
+      { status: 403 },
+    );
   }
 
   const config = await deleteToolFromConfig(id, toolName);

@@ -278,10 +278,14 @@ export const updateConfigSchema = z.object({
   pageType: z.string().max(100).optional(),
   title: z.string().min(1).max(200).optional(),
   description: z.string().min(1).max(5000).optional(),
-  tools: z.array(toolDescriptorSchema).max(30).superRefine(uniqueToolNames).optional(),
+  // tools removed — use POST /api/configs/:id/tools instead
   contributor: z.string().min(1).max(39).optional(),
   tags: z.array(z.string().max(50)).max(10).optional(),
 });
 
+// contributor is set server-side from the auth token, not accepted from the request body
+export const addToolSchema = toolDescriptorSchema;
+
 export type CreateConfigInput = z.infer<typeof createConfigSchema>;
 export type UpdateConfigInput = z.infer<typeof updateConfigSchema>;
+export type AddToolInput = z.infer<typeof addToolSchema>;

@@ -1,4 +1,4 @@
-import type { WebMcpConfig, ConfigListResponse } from "@web-mcp-hub/db";
+import type { WebMcpConfig, ConfigListResponse, ToolDescriptor } from "@web-mcp-hub/db";
 
 const HUB_BASE = process.env.HUB_URL ?? "https://www.webmcp-hub.com";
 const HUB_API_KEY = process.env.HUB_API_KEY;
@@ -100,6 +100,24 @@ export async function deleteTool(
     return { error: body.error ?? JSON.stringify(body), status: res.status };
   }
   return { config: body as WebMcpConfig, status: 200 };
+}
+
+export async function contributeTool(
+  configId: string,
+  data: Record<string, unknown>,
+): Promise<{ tool?: ToolDescriptor; error?: string; status: number }> {
+  const res = await hubFetch(`/api/configs/${configId}/tools`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  const body = await res.json();
+  if (res.status === 409) {
+    return { error: body.error, status: 409 };
+  }
+  if (!res.ok) {
+    return { error: JSON.stringify(body.error), status: res.status };
+  }
+  return { tool: body as ToolDescriptor, status: 201 };
 }
 
 export async function voteOnTool(

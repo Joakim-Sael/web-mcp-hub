@@ -36,9 +36,10 @@ export {
   executionDescriptorSchema,
   createConfigSchema,
   updateConfigSchema,
+  addToolSchema,
 } from "./validation.js";
 
-export type { CreateConfigInput, UpdateConfigInput } from "./validation.js";
+export type { CreateConfigInput, UpdateConfigInput, AddToolInput } from "./validation.js";
 
 export { deriveInputSchema } from "./derive-schema.js";
 
@@ -51,6 +52,7 @@ export type { Database } from "./client.js";
 
 export {
   configs,
+  tools,
   users,
   accounts,
   sessions,

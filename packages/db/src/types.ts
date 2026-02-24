@@ -164,6 +164,7 @@ export interface ToolDescriptor {
   inputSchema: Record<string, unknown>;
   annotations?: Record<string, string>;
   execution?: ExecutionDescriptor;
+  contributor?: string; // set by the server from auth token, not required in submissions
 }
 
 export interface WebMcpConfig {
