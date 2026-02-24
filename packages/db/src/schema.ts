@@ -27,25 +27,25 @@ export const configs = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [
-    index("idx_configs_domain").on(table.domain),
-  ],
+  (table) => [index("idx_configs_domain").on(table.domain)],
 ).enableRLS();
 
 export const tools = pgTable(
   "tools",
   {
-    id:          uuid("id").primaryKey().defaultRandom(),
-    configId:    uuid("config_id").notNull().references(() => configs.id, { onDelete: "cascade" }),
-    name:        text("name").notNull(),
+    id: uuid("id").primaryKey().defaultRandom(),
+    configId: uuid("config_id")
+      .notNull()
+      .references(() => configs.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
     description: text("description").notNull(),
     inputSchema: jsonb("input_schema").$type<Record<string, unknown>>().notNull(),
     annotations: jsonb("annotations").$type<Record<string, string>>(),
-    execution:   jsonb("execution").$type<ExecutionDescriptor>(),
+    execution: jsonb("execution").$type<ExecutionDescriptor>(),
     contributor: text("contributor").notNull(),
-    verified:    boolean("verified").default(false).notNull(),
-    createdAt:   timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-    updatedAt:   timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    verified: boolean("verified").default(false).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     uniqueIndex("uq_tools_config_name").on(table.configId, table.name),

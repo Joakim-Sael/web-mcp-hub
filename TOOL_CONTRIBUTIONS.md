@@ -30,17 +30,19 @@ Add a new `tools` table:
 export const tools = pgTable(
   "tools",
   {
-    id:          uuid("id").primaryKey().defaultRandom(),
-    configId:    uuid("config_id").notNull().references(() => configs.id, { onDelete: "cascade" }),
-    name:        text("name").notNull(),
+    id: uuid("id").primaryKey().defaultRandom(),
+    configId: uuid("config_id")
+      .notNull()
+      .references(() => configs.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
     description: text("description").notNull(),
     inputSchema: jsonb("input_schema").$type<Record<string, unknown>>().notNull(),
     annotations: jsonb("annotations").$type<Record<string, string>>(),
-    execution:   jsonb("execution").$type<ExecutionDescriptor>(),
+    execution: jsonb("execution").$type<ExecutionDescriptor>(),
     contributor: text("contributor").notNull(),
-    verified:    boolean("verified").default(false).notNull(),
-    createdAt:   timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-    updatedAt:   timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    verified: boolean("verified").default(false).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     uniqueIndex("uq_tools_config_name").on(table.configId, table.name),
@@ -52,11 +54,11 @@ export const tools = pgTable(
 
 Remove these three columns from the `configs` table — they are replaced by the new table:
 
-| Column removed from `configs` | Replaced by |
-|---|---|
-| `tools jsonb` | Rows in the `tools` table |
-| `verifiedTools jsonb` | `tools.verified boolean` per row |
-| `hasExecution integer` | Derived: `EXISTS (SELECT 1 FROM tools WHERE config_id = ? AND execution IS NOT NULL)` |
+| Column removed from `configs` | Replaced by                                                                           |
+| ----------------------------- | ------------------------------------------------------------------------------------- |
+| `tools jsonb`                 | Rows in the `tools` table                                                             |
+| `verifiedTools jsonb`         | `tools.verified boolean` per row                                                      |
+| `hasExecution integer`        | Derived: `EXISTS (SELECT 1 FROM tools WHERE config_id = ? AND execution IS NOT NULL)` |
 
 **Why**: Tools get identity (UUID), attribution (per-tool `contributor`), and a first-class verified flag. The JSONB blob no longer grows unboundedly. Queries like "all tools by user X" become a simple indexed lookup.
 
@@ -105,11 +107,11 @@ Add `contributor` to `ToolDescriptor` (optional so existing callers don't break 
 
 ```ts
 export interface ToolDescriptor {
-  name:         string;
-  description:  string;
-  inputSchema:  Record<string, unknown>;
+  name: string;
+  description: string;
+  inputSchema: Record<string, unknown>;
   annotations?: Record<string, string>;
-  execution?:   ExecutionDescriptor;
+  execution?: ExecutionDescriptor;
   contributor?: string; // set by the server from auth token, not required in submissions
 }
 ```
@@ -129,37 +131,37 @@ Every function that currently reads `row.tools` (a JSONB field) now does a JOIN 
 ```ts
 // Before
 function rowToConfig(row) {
-  return { ...row, tools: row.tools }
+  return { ...row, tools: row.tools };
 }
 
 // After
 function rowToConfig(configRow, toolRows) {
   return {
     ...configRow,
-    tools: toolRows.map(t => ({
-      name:        t.name,
+    tools: toolRows.map((t) => ({
+      name: t.name,
       description: t.description,
       inputSchema: t.inputSchema,
       annotations: t.annotations ?? undefined,
-      execution:   t.execution ?? undefined,
+      execution: t.execution ?? undefined,
       contributor: t.contributor,
     })),
-    verified: toolRows.length > 0 && toolRows.every(t => t.verified),
-    verifiedToolNames: toolRows.filter(t => t.verified).map(t => t.name),
-  }
+    verified: toolRows.length > 0 && toolRows.every((t) => t.verified),
+    verifiedToolNames: toolRows.filter((t) => t.verified).map((t) => t.name),
+  };
 }
 ```
 
 Functions that change:
 
-| Function | Change |
-|---|---|
-| `createConfig` | After inserting the config row, batch-insert all tools into the `tools` table |
-| `updateConfig` | Now only updates config metadata (title, description, pageType, tags). Tools array replacement is removed |
-| `getConfigById` | JOIN with `tools` table |
-| `lookupByDomain` | JOIN with `tools` table |
-| `listConfigs` | JOIN or count subquery against `tools` table |
-| `deleteToolFromConfig` | `DELETE FROM tools WHERE config_id = ? AND name = ?` — no more JSONB manipulation |
+| Function               | Change                                                                                                    |
+| ---------------------- | --------------------------------------------------------------------------------------------------------- |
+| `createConfig`         | After inserting the config row, batch-insert all tools into the `tools` table                             |
+| `updateConfig`         | Now only updates config metadata (title, description, pageType, tags). Tools array replacement is removed |
+| `getConfigById`        | JOIN with `tools` table                                                                                   |
+| `lookupByDomain`       | JOIN with `tools` table                                                                                   |
+| `listConfigs`          | JOIN or count subquery against `tools` table                                                              |
+| `deleteToolFromConfig` | `DELETE FROM tools WHERE config_id = ? AND name = ?` — no more JSONB manipulation                         |
 
 New function:
 
@@ -223,6 +225,7 @@ if (!isConfigOwner && !isToolContributor) {
 **File**: `apps/web/app/api/configs/[id]/route.ts`
 
 Remove `tools` from the accepted body. The PATCH endpoint now only updates config-level metadata:
+
 - `title`
 - `description`
 - `pageType`
@@ -265,9 +268,11 @@ export const addToolSchema = toolDescriptorSchema; // contributor is set server-
 Three changes:
 
 **A. `upload_config` 409 message** — Change the response from:
+
 > "Use `update_config` to modify it."
 
 To:
+
 > "Use `contribute_tool` to add a tool to it, or `update_config` to update metadata."
 
 **B. `update_config`** — Remove the `tools` parameter. It now only accepts metadata fields (title, description, pageType, tags). Update the description accordingly.
@@ -326,8 +331,7 @@ const isOwner = session?.user?.name === config.contributor;
 
 // After
 const isConfigOwner = session?.user?.name === config.contributor;
-const canDeleteTool = (tool) =>
-  isConfigOwner || session?.user?.name === tool.contributor;
+const canDeleteTool = (tool) => isConfigOwner || session?.user?.name === tool.contributor;
 // show delete button when canDeleteTool(tool)
 ```
 
@@ -363,13 +367,13 @@ Also update `apps/web/app/domains/[domain]/page.tsx` — same per-tool contribut
 
 ## Problems Solved Summary
 
-| Problem | Before | After |
-|---|---|---|
-| User 2 can't add tools to an existing config | 403 on PATCH, 409 on POST | `POST /api/configs/:id/tools` open to any user |
-| One person owns all tools for a URL | Config owner controls everything | Each tool has its own `contributor` |
-| Adding a tool requires knowing all existing tools | Full array replacement via `update_config` | Single `contribute_tool` call |
-| Tool deletion requires config ownership | Owner-only | Tool contributor OR config owner |
-| "All tools by user X" query | Full table scan + JSONB parse | `SELECT * FROM tools WHERE contributor = ?` |
-| `verifiedTools` is a duplicate JSONB copy | Two copies must stay in sync | Single `verified` boolean per tool row |
-| Leaderboard credits config owners for all tools | One person gets all credit | Each tool credited to its actual contributor |
-| JSONB array grows unboundedly | Blob per config | Indexed rows, independently pageable |
+| Problem                                           | Before                                     | After                                          |
+| ------------------------------------------------- | ------------------------------------------ | ---------------------------------------------- |
+| User 2 can't add tools to an existing config      | 403 on PATCH, 409 on POST                  | `POST /api/configs/:id/tools` open to any user |
+| One person owns all tools for a URL               | Config owner controls everything           | Each tool has its own `contributor`            |
+| Adding a tool requires knowing all existing tools | Full array replacement via `update_config` | Single `contribute_tool` call                  |
+| Tool deletion requires config ownership           | Owner-only                                 | Tool contributor OR config owner               |
+| "All tools by user X" query                       | Full table scan + JSONB parse              | `SELECT * FROM tools WHERE contributor = ?`    |
+| `verifiedTools` is a duplicate JSONB copy         | Two copies must stay in sync               | Single `verified` boolean per tool row         |
+| Leaderboard credits config owners for all tools   | One person gets all credit                 | Each tool credited to its actual contributor   |
+| JSONB array grows unboundedly                     | Blob per config                            | Indexed rows, independently pageable           |

@@ -598,9 +598,7 @@ Tool schema rules:
       configId: z
         .string()
         .describe("The config to add the tool to (from lookup_config or list_configs)"),
-      name: z
-        .string()
-        .describe("Kebab-case tool name with a specific verb, e.g. 'search-tweets'"),
+      name: z.string().describe("Kebab-case tool name with a specific verb, e.g. 'search-tweets'"),
       description: z.string().describe("What the tool does and when to use it"),
       inputSchema: z
         .object({
@@ -617,10 +615,7 @@ Tool schema rules:
             .describe(
               "Property definitions — each value must be a schema object like {type:'string',description:'...'}",
             ),
-          required: z
-            .array(z.string())
-            .optional()
-            .describe("List of required property names"),
+          required: z.array(z.string()).optional().describe("List of required property names"),
         })
         .passthrough()
         .describe(
