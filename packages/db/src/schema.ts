@@ -9,7 +9,9 @@ import {
   index,
   uniqueIndex,
   primaryKey,
+  check,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import type { ExecutionDescriptor } from "./types.js";
 
 export const configs = pgTable(
@@ -27,7 +29,12 @@ export const configs = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [index("idx_configs_domain").on(table.domain)],
+  (table) => [
+    index("idx_configs_domain").on(table.domain),
+    uniqueIndex("configs_domain_url_unique").on(table.domain, table.urlPattern),
+    check("configs_title_length", sql`char_length(${table.title}) <= 200`),
+    check("configs_description_length", sql`char_length(${table.description}) <= 5000`),
+  ],
 ).enableRLS();
 
 export const tools = pgTable(
