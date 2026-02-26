@@ -62,11 +62,12 @@ export async function POST(request: NextRequest) {
 
   // Set contributor to the authenticated user's name (GitHub login)
   const userName = await getUserName(authResult.userId);
-  if (userName) {
-    parsed.data.contributor = userName;
+  if (!userName) {
+    return NextResponse.json({ error: "Could not resolve user" }, { status: 500 });
   }
+  parsed.data.contributor = userName;
 
-  const configCount = await countConfigsByContributor(parsed.data.contributor);
+  const configCount = await countConfigsByContributor(userName);
   if (configCount >= 50) {
     return NextResponse.json(
       { error: "Config limit reached: maximum 50 configs per user" },
