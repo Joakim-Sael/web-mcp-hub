@@ -269,7 +269,7 @@ export const createConfigSchema = z.object({
   title: z.string().min(1).max(200),
   description: z.string().min(1).max(5000),
   tools: z.array(toolDescriptorSchema).max(30).superRefine(uniqueToolNames),
-  contributor: z.string().min(1).max(39),
+  contributor: z.string().min(1).max(39).optional(),
   tags: z.array(z.string().max(50)).max(10).optional(),
 });
 
