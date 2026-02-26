@@ -110,15 +110,6 @@ export async function listConfigs(opts: {
 
   const conditions = [];
 
-  if (!yolo) {
-    const isVerified = sql`EXISTS (SELECT 1 FROM tools WHERE config_id = ${configs.id} AND verified = true)`;
-    if (opts.currentUser) {
-      conditions.push(or(isVerified, eq(configs.contributor, opts.currentUser))!);
-    } else {
-      conditions.push(isVerified);
-    }
-  }
-
   if (opts.search) {
     const term = `%${opts.search}%`;
     conditions.push(
@@ -179,16 +170,8 @@ export async function lookupByDomain(
   const conditions = [eq(configs.domain, normalized)];
   if (opts?.executable) {
     conditions.push(
-      sql`EXISTS (SELECT 1 FROM tools WHERE config_id = ${configs.id} AND execution IS NOT NULL)`,
+      sql`EXISTS (SELECT 1 FROM tools WHERE config_id = ${configs.id} AND execution IS NOT NULL AND verified = true)`,
     );
-  }
-  if (!yolo) {
-    const isVerified = sql`EXISTS (SELECT 1 FROM tools WHERE config_id = ${configs.id} AND verified = true)`;
-    if (opts?.currentUser) {
-      conditions.push(or(isVerified, eq(configs.contributor, opts.currentUser))!);
-    } else {
-      conditions.push(isVerified);
-    }
   }
 
   const rows = await db
@@ -321,9 +304,16 @@ export async function addToolToConfig(
   configId: string,
   tool: AddToolInput,
   contributor: string,
-): Promise<ToolDescriptor | null> {
+): Promise<ToolDescriptor | null | "limit"> {
   const db = getDb();
   const now = new Date();
+
+  const [{ count }] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(tools)
+    .where(eq(tools.configId, configId));
+
+  if (Number(count) >= 50) return "limit";
 
   const [inserted] = await db
     .insert(tools)
@@ -550,22 +540,22 @@ export async function upsertToolVote(
     eq(configVotes.toolName, toolName),
   );
 
-  // Check for existing vote
+  // Check for existing vote to handle toggle-off (same direction → delete)
   const [existing] = await db.select({ vote: configVotes.vote }).from(configVotes).where(where);
 
-  if (existing) {
-    if (existing.vote === vote) {
-      // Same direction → toggle off (remove vote)
-      await db.delete(configVotes).where(where);
-    } else {
-      // Different direction → update
-      await db.update(configVotes).set({ vote, createdAt: new Date() }).where(where);
-    }
+  if (existing?.vote === vote) {
+    // Same direction → toggle off (remove vote)
+    await db.delete(configVotes).where(where);
   } else {
-    // No existing vote → insert
+    // No vote or different direction → atomic upsert prevents PK constraint violation
+    // under concurrent requests from the same user
     await db
       .insert(configVotes)
-      .values({ userId, configId, toolName, vote, createdAt: new Date() });
+      .values({ userId, configId, toolName, vote, createdAt: new Date() })
+      .onConflictDoUpdate({
+        target: [configVotes.userId, configVotes.configId, configVotes.toolName],
+        set: { vote, createdAt: new Date() },
+      });
   }
 }
 
