@@ -43,6 +43,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   }
 
   const tool = await addToolToConfig(id, parsed.data, contributor);
+  if (tool === "limit") {
+    return NextResponse.json({ error: "Config has reached the 50-tool limit" }, { status: 422 });
+  }
   if (!tool) {
     return NextResponse.json(
       { error: `Tool name "${parsed.data.name}" is already taken in this config` },
