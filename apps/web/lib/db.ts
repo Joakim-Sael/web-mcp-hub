@@ -169,8 +169,11 @@ export async function lookupByDomain(
 
   const conditions = [eq(configs.domain, normalized)];
   if (opts?.executable) {
+    const currentUser = opts?.currentUser;
     conditions.push(
-      sql`EXISTS (SELECT 1 FROM tools WHERE config_id = ${configs.id} AND execution IS NOT NULL AND verified = true)`,
+      currentUser
+        ? sql`EXISTS (SELECT 1 FROM tools WHERE config_id = ${configs.id} AND execution IS NOT NULL AND (verified = true OR contributor = ${currentUser}))`
+        : sql`EXISTS (SELECT 1 FROM tools WHERE config_id = ${configs.id} AND execution IS NOT NULL AND verified = true)`,
     );
   }
 
