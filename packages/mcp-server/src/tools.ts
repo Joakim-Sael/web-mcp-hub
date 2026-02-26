@@ -579,6 +579,75 @@ Use this to remove a tool that is broken, incorrect, or no longer needed.`,
     },
   );
 
+  // update_tool
+  server.tool(
+    "update_tool",
+    `Update an existing tool in a WebMCP config. Only the config owner or the tool's own contributor can update it.
+
+Use this to fix a broken selector, improve a description, or update the execution metadata of an existing tool without deleting and re-adding it.
+
+All fields are optional — only provide the ones you want to change. The tool name cannot be changed; to rename a tool, delete it and re-add it with contribute_tool.`,
+    {
+      configId: z
+        .string()
+        .describe("The config ID containing the tool (from lookup_config or list_configs)"),
+      toolName: z.string().describe("The name of the tool to update, e.g. 'search-products'"),
+      description: z.string().optional().describe("New description for the tool"),
+      inputSchema: z
+        .object({
+          type: z.literal("object").describe("Must be 'object'"),
+          properties: z
+            .record(
+              z.string(),
+              z
+                .object({ type: z.string() })
+                .passthrough()
+                .describe("Each property must be a schema object with at least a 'type' field"),
+            )
+            .default({})
+            .describe(
+              "Property definitions — each value must be a schema object like {type:'string',description:'...'}",
+            ),
+          required: z.array(z.string()).optional().describe("List of required property names"),
+        })
+        .passthrough()
+        .optional()
+        .describe("Updated JSON Schema for the tool's inputs"),
+      annotations: z
+        .record(z.string(), z.string())
+        .optional()
+        .describe("Updated hints: readOnlyHint, destructiveHint, idempotentHint, openWorldHint"),
+      execution: executionSchema,
+    },
+    { idempotentHint: true },
+    async ({ configId, toolName, ...updates }) => {
+      try {
+        const result = await hub.updateTool(configId, toolName, updates);
+
+        if (result.error) {
+          return {
+            content: [{ type: "text" as const, text: `Error: ${result.error}` }],
+            isError: true,
+          };
+        }
+
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Tool "${result.tool!.name}" updated successfully in config ${configId}.`,
+            },
+          ],
+        };
+      } catch (error) {
+        return {
+          content: [{ type: "text" as const, text: `Hub unreachable: ${error}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
   // contribute_tool
   server.tool(
     "contribute_tool",

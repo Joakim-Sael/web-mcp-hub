@@ -120,6 +120,33 @@ export async function contributeTool(
   return { tool: body as ToolDescriptor, status: 201 };
 }
 
+export async function getConfig(
+  id: string,
+): Promise<{ config?: WebMcpConfig; error?: string; status: number }> {
+  const res = await hubFetch(`/api/configs/${id}`);
+  const body = await res.json();
+  if (!res.ok) {
+    return { error: body.error ?? JSON.stringify(body), status: res.status };
+  }
+  return { config: body as WebMcpConfig, status: 200 };
+}
+
+export async function updateTool(
+  configId: string,
+  toolName: string,
+  data: Record<string, unknown>,
+): Promise<{ tool?: ToolDescriptor; error?: string; status: number }> {
+  const res = await hubFetch(`/api/configs/${configId}/tools/${encodeURIComponent(toolName)}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+  const body = await res.json();
+  if (!res.ok) {
+    return { error: body.error ?? JSON.stringify(body), status: res.status };
+  }
+  return { tool: body as ToolDescriptor, status: 200 };
+}
+
 export async function voteOnTool(
   configId: string,
   toolName: string,
