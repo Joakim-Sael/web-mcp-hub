@@ -263,7 +263,7 @@ export async function createConfig(input: CreateConfigInput): Promise<WebMcpConf
           inputSchema: t.inputSchema,
           annotations: t.annotations ?? null,
           execution: t.execution ?? null,
-          contributor: input.contributor,
+          contributor: input.contributor!,
           verified: false,
           createdAt: now,
           updatedAt: now,
