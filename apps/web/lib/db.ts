@@ -243,7 +243,7 @@ export async function createConfig(input: CreateConfigInput): Promise<WebMcpConf
       pageType: input.pageType ?? null,
       title: input.title,
       description: input.description,
-      contributor: input.contributor,
+      contributor: input.contributor!,
       version: 1,
       tags: input.tags ?? null,
       createdAt: now,
