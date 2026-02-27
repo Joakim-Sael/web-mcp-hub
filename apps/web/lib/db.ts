@@ -389,6 +389,24 @@ export async function deleteToolFromConfig(
   return rowToConfig(configRow, toolsMap.get(configId) ?? []);
 }
 
+export async function setToolVerified(
+  configId: string,
+  toolName: string,
+  verified: boolean,
+): Promise<boolean> {
+  const db = getDb();
+  const [updated] = await db
+    .update(tools)
+    .set({ verified, updatedAt: new Date() })
+    .where(and(eq(tools.configId, configId), eq(tools.name, toolName)))
+    .returning();
+  return !!updated;
+}
+
+export async function resetToolVerified(configId: string, toolName: string): Promise<void> {
+  await setToolVerified(configId, toolName, false);
+}
+
 export async function getStats(): Promise<{
   totalConfigs: number;
   totalTools: number;

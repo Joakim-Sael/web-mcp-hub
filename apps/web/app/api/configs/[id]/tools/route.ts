@@ -3,6 +3,7 @@ import { addToolSchema } from "@web-mcp-hub/db";
 import { getConfigById, addToolToConfig } from "@/lib/db";
 import { checkAuth, getUserName } from "@/lib/auth-check";
 import { rateLimit } from "@/lib/rate-limit";
+import { fireWebhook } from "@/lib/webhook";
 
 export const dynamic = "force-dynamic";
 
@@ -52,6 +53,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       { status: 409 },
     );
   }
+
+  fireWebhook("tool.created", {
+    configId: id,
+    toolName: tool.name,
+    tool,
+    contributor,
+  });
 
   return NextResponse.json(tool, { status: 201 });
 }
