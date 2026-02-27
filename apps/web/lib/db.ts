@@ -403,10 +403,7 @@ export async function setToolVerified(
   return !!updated;
 }
 
-export async function resetToolVerified(
-  configId: string,
-  toolName: string,
-): Promise<void> {
+export async function resetToolVerified(configId: string, toolName: string): Promise<void> {
   await setToolVerified(configId, toolName, false);
 }
 

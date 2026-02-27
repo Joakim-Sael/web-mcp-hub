@@ -19,7 +19,10 @@ interface WebhookPayload {
  * Fire-and-forget webhook POST.
  * No-op if WEBHOOK_URL is not set — keeps OSS hub fully functional without a review service.
  */
-export function fireWebhook(event: WebhookEvent, payload: Omit<WebhookPayload, "event" | "timestamp">): void {
+export function fireWebhook(
+  event: WebhookEvent,
+  payload: Omit<WebhookPayload, "event" | "timestamp">,
+): void {
   const url = process.env.WEBHOOK_URL;
   const secret = process.env.WEBHOOK_SECRET;
   if (!url) return;

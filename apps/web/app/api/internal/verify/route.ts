@@ -21,8 +21,15 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const { configId, toolName, verified } = body;
 
-  if (typeof configId !== "string" || typeof toolName !== "string" || typeof verified !== "boolean") {
-    return NextResponse.json({ error: "Invalid body: requires configId, toolName, verified" }, { status: 400 });
+  if (
+    typeof configId !== "string" ||
+    typeof toolName !== "string" ||
+    typeof verified !== "boolean"
+  ) {
+    return NextResponse.json(
+      { error: "Invalid body: requires configId, toolName, verified" },
+      { status: 400 },
+    );
   }
 
   const found = await setToolVerified(configId, toolName, verified);

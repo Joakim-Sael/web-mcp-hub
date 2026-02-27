@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { updateToolSchema } from "@web-mcp-hub/db";
-import { getConfigById, deleteToolFromConfig, updateToolInConfig, resetToolVerified } from "@/lib/db";
+import {
+  getConfigById,
+  deleteToolFromConfig,
+  updateToolInConfig,
+  resetToolVerified,
+} from "@/lib/db";
 import { checkAuth, getUserName } from "@/lib/auth-check";
 import { rateLimit } from "@/lib/rate-limit";
 import { fireWebhook } from "@/lib/webhook";
