@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { updateToolSchema } from "@web-mcp-hub/db";
-import { getConfigById, deleteToolFromConfig, updateToolInConfig } from "@/lib/db";
+import { getConfigById, deleteToolFromConfig, updateToolInConfig, resetToolVerified } from "@/lib/db";
 import { checkAuth, getUserName } from "@/lib/auth-check";
 import { rateLimit } from "@/lib/rate-limit";
+import { fireWebhook } from "@/lib/webhook";
 
 export const dynamic = "force-dynamic";
 
@@ -50,10 +51,19 @@ export async function PATCH(
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
+  await resetToolVerified(id, toolName);
+
   const updated = await updateToolInConfig(id, toolName, parsed.data);
   if (!updated) {
     return NextResponse.json({ error: "Tool not found" }, { status: 404 });
   }
+
+  fireWebhook("tool.updated", {
+    configId: id,
+    toolName: updated.name,
+    tool: updated,
+    contributor: updated.contributor ?? userName!,
+  });
 
   return NextResponse.json(updated);
 }

@@ -10,6 +10,7 @@ import {
 export const dynamic = "force-dynamic";
 import { checkAuth, getUserName } from "@/lib/auth-check";
 import { rateLimit } from "@/lib/rate-limit";
+import { fireWebhook } from "@/lib/webhook";
 
 export async function GET(request: NextRequest) {
   const limited = rateLimit(request);
@@ -87,5 +88,15 @@ export async function POST(request: NextRequest) {
   }
 
   const config = await createConfig(parsed.data);
+
+  for (const tool of config.tools) {
+    fireWebhook("tool.created", {
+      configId: config.id,
+      toolName: tool.name,
+      tool,
+      contributor: tool.contributor ?? userName,
+    });
+  }
+
   return NextResponse.json(config, { status: 201 });
 }
