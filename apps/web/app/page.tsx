@@ -125,20 +125,22 @@ export default async function HomePage({
       </section>
 
       {/* MoltBrowser CTA */}
-      <section className="border-b border-zinc-800">
-        <div className="max-w-6xl mx-auto px-6 py-8 flex items-center justify-center gap-3 text-center">
-          <p className="text-zinc-400 text-sm md:text-base">
+      <section>
+        <div className="max-w-6xl mx-auto px-6 py-16 flex flex-col items-center text-center gap-2">
+          <p className="text-lg md:text-xl text-zinc-300 font-medium">
             Use together with{" "}
             <a
               href="https://github.com/Joakim-Sael/moltbrowser-mcp"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold text-white hover:text-blue-400 transition-colors"
+              className="font-bold text-white hover:text-blue-400 transition-colors"
             >
               🦞 MoltBrowser-MCP 🦞
-            </a>{" "}
-            — let your browser agents contribute and look up community-driven configs to save time
-            and tokens.
+            </a>
+          </p>
+          <p className="text-sm text-zinc-500 italic max-w-lg">
+            Let your browser agents contribute and look up community-driven configs to save time and
+            tokens.
           </p>
         </div>
       </section>
