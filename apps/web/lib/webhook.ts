@@ -1,3 +1,5 @@
+import { after } from "next/server";
+
 type WebhookEvent = "tool.created" | "tool.updated";
 
 interface WebhookPayload {
@@ -18,6 +20,7 @@ interface WebhookPayload {
 /**
  * Fire-and-forget webhook POST.
  * No-op if WEBHOOK_URL is not set — keeps OSS hub fully functional without a review service.
+ * Uses next/server `after()` so the fetch survives after the response is sent on Vercel.
  */
 export function fireWebhook(
   event: WebhookEvent,
@@ -33,15 +36,19 @@ export function fireWebhook(
     timestamp: new Date().toISOString(),
   };
 
-  fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(secret ? { "X-Webhook-Secret": secret } : {}),
-    },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(10_000),
-  })
-    .then(() => {})
-    .catch((err) => console.error(`Webhook ${event} failed:`, err));
+  after(async () => {
+    try {
+      await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(secret ? { "X-Webhook-Secret": secret } : {}),
+        },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(10_000),
+      });
+    } catch (err) {
+      console.error(`Webhook ${event} failed:`, err);
+    }
+  });
 }
