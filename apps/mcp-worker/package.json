@@ -9,11 +9,11 @@
     "build": "tsc --noEmit"
   },
   "dependencies": {
-    "@cloudflare/workers-oauth-provider": "^0.0.5",
-    "@modelcontextprotocol/sdk": "^1.26.0",
+    "@cloudflare/workers-oauth-provider": "^0.2.4",
+    "@modelcontextprotocol/sdk": "^1.27.1",
     "@web-mcp-hub/db": "*",
-    "agents": "^0.4.1",
-    "hono": "^4.7.0",
+    "agents": "^0.7.2",
+    "hono": "^4.12.3",
     "zod": "^4.3.6"
   },
   "devDependencies": {
