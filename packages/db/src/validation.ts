@@ -101,9 +101,19 @@ const scrollStepSchema = z.object({
   selector: z.string().min(1).max(500),
 });
 
+const EVALUATE_BLOCKLIST =
+  /\b(fetch|XMLHttpRequest|sendBeacon|WebSocket|EventSource|localStorage|sessionStorage|indexedDB|postMessage|BroadcastChannel|eval|Function)\s*\(|document\.cookie|\bimport\s*\(|window\s*\[|document\s*\[|self\s*\[|atob\s*\(|btoa\s*\(/i;
+
 const evaluateStepSchema = z.object({
   action: z.literal("evaluate"),
-  value: z.string().min(1).max(10000),
+  value: z
+    .string()
+    .min(1)
+    .max(10000)
+    .refine((code) => !EVALUATE_BLOCKLIST.test(code), {
+      message:
+        "Evaluate code contains a blocked API (network calls, cookie access, eval, dynamic global access, etc.)",
+    }),
 });
 
 // Use z.lazy for the recursive ConditionStep
