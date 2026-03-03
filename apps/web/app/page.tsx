@@ -137,7 +137,8 @@ export default async function HomePage({
             >
               🦞 MoltBrowser-MCP 🦞
             </a>{" "}
-            — let your browser agents contribute and look up community-driven configs to save time and tokens.
+            — let your browser agents contribute and look up community-driven configs to save time
+            and tokens.
           </p>
         </div>
       </section>
