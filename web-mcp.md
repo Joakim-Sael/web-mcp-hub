@@ -21,45 +21,6 @@ if ("modelContext" in window.navigator) {
 }
 ```
 
-### provideContext
-
-Registers a full set of tools. **Replaces** any previously registered tools.
-
-```js
-window.navigator.modelContext.provideContext({
-  tools: [
-    {
-      name: "addTodo",
-      description: "Add a new item to the todo list",
-      inputSchema: {
-        type: "object",
-        properties: {
-          text: { type: "string", description: "The text of the todo item" },
-        },
-        required: ["text"],
-      },
-      execute: ({ text }) => {
-        return { content: [{ type: "text", text: `Added todo: ${text}` }] };
-      },
-    },
-    {
-      name: "markComplete",
-      description: "Mark a todo item as complete",
-      inputSchema: {
-        type: "object",
-        properties: {
-          id: { type: "string", description: "The ID of the todo item" },
-        },
-        required: ["id"],
-      },
-      execute: ({ id }) => {
-        return { content: [{ type: "text", text: `Marked ${id} as complete` }] };
-      },
-    },
-  ],
-});
-```
-
 ### registerTool
 
 Adds a single tool to the existing set without removing others.
@@ -92,17 +53,9 @@ Removes a specific tool by name.
 window.navigator.modelContext.unregisterTool("addTodo");
 ```
 
-### clearContext
-
-Removes all registered tools at once.
-
-```js
-window.navigator.modelContext.clearContext();
-```
-
 ### Tool Descriptor Shape
 
-Every tool passed to `provideContext` or `registerTool` has the following shape:
+Every tool passed to `registerTool` has the following shape:
 
 | Property      | Type       | Required | Description                                        |
 | ------------- | ---------- | -------- | -------------------------------------------------- |
@@ -393,34 +346,30 @@ document.getElementById("addStampForm").addEventListener("submit", (event) => {
 
 // WebMCP tool registration
 if ("modelContext" in window.navigator) {
-  window.navigator.modelContext.provideContext({
-    tools: [
-      {
-        name: "add-stamp",
-        description: "Add a new stamp to the collection",
-        inputSchema: {
-          type: "object",
-          properties: {
-            name: { type: "string", description: "The name of the stamp" },
-            description: { type: "string", description: "A brief description of the stamp" },
-            year: { type: "number", description: "The year the stamp was issued" },
-            imageUrl: { type: "string", description: "An optional image URL for the stamp" },
-          },
-          required: ["name", "description", "year"],
-        },
-        execute({ name, description, year, imageUrl }) {
-          addStamp(name, description, year, imageUrl);
-          return {
-            content: [
-              {
-                type: "text",
-                text: `Stamp "${name}" added successfully! The collection now contains ${stamps.length} stamps.`,
-              },
-            ],
-          };
-        },
+  window.navigator.modelContext.registerTool({
+    name: "add-stamp",
+    description: "Add a new stamp to the collection",
+    inputSchema: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "The name of the stamp" },
+        description: { type: "string", description: "A brief description of the stamp" },
+        year: { type: "number", description: "The year the stamp was issued" },
+        imageUrl: { type: "string", description: "An optional image URL for the stamp" },
       },
-    ],
+      required: ["name", "description", "year"],
+    },
+    execute({ name, description, year, imageUrl }) {
+      addStamp(name, description, year, imageUrl);
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Stamp "${name}" added successfully! The collection now contains ${stamps.length} stamps.`,
+          },
+        ],
+      };
+    },
   });
 }
 ```
