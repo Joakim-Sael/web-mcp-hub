@@ -69,9 +69,9 @@ export async function POST(request: NextRequest) {
   parsed.data.contributor = userName;
 
   const configCount = await countConfigsByContributor(userName);
-  if (configCount >= 50) {
+  if (configCount >= 200) {
     return NextResponse.json(
-      { error: "Config limit reached: maximum 50 configs per user" },
+      { error: "Config limit reached: maximum 200 configs per user" },
       { status: 403 },
     );
   }
