@@ -30,7 +30,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [{ protocol: "https", hostname: "avatars.githubusercontent.com" }],
   },
   async headers() {
-    return [{ source: "/(.*)", headers: securityHeaders }];
+    return [{ source: "/((?!api/).*)", headers: securityHeaders }];
   },
 };
 
