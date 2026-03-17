@@ -23,9 +23,9 @@
     "db:push": "sh -c 'set -a; . ../../.env.local; set +a; drizzle-kit push'"
   },
   "dependencies": {
-    "drizzle-orm": "^0.38.0",
+    "drizzle-orm": "^0.45.1",
     "postgres": "^3.4.0",
-    "zod": "^3.25.76"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "drizzle-kit": "^0.30.0",
