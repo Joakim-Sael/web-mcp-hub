@@ -21,7 +21,7 @@ const tabs = [
   },
   {
     id: "mcp-moltbrowser",
-    label: "Moltbrowser MCP",
+    label: "Moltbrowser",
     description: "Use with Moltbrowser — add to your MCP client config:",
     command: `{
   "mcpServers": {
@@ -31,21 +31,6 @@ const tabs = [
       "env": {
         "HUB_API_KEY": "whub_your_api_key"
       }
-    }
-  }
-}`,
-    multiline: true,
-  },
-  {
-    id: "mcp-standalone",
-    label: "Standalone MCP",
-    description: "Run as a standalone MCP server — add to your MCP client config:",
-    command: `{
-  "mcpServers": {
-    "webmcp-hub": {
-      "command": "npx",
-      "args": ["mcp-remote",
-        "https://webmcp-hub-mcp.flowagentlyhub.workers.dev/mcp"]
     }
   }
 }`,

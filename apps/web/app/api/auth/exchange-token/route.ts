@@ -86,9 +86,9 @@ export async function POST(request: NextRequest) {
     userId = newUser.id;
   }
 
-  // Delete previous MCP worker keys for this user to prevent accumulation
-  const mcpLabel = `MCP worker (${ghUser.login})`;
-  await db.delete(apiKeys).where(and(eq(apiKeys.userId, userId), eq(apiKeys.label, mcpLabel)));
+  // Delete previous CLI keys for this user to prevent accumulation
+  const cliLabel = `CLI (${ghUser.login})`;
+  await db.delete(apiKeys).where(and(eq(apiKeys.userId, userId), eq(apiKeys.label, cliLabel)));
 
   // Generate a whub_ API key
   const rawBytes = randomBytes(30);
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
     userId,
     keyHash: hash,
     keyPrefix: prefix,
-    label: `MCP worker (${ghUser.login})`,
+    label: `CLI (${ghUser.login})`,
   });
 
   return NextResponse.json({
