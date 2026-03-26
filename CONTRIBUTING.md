@@ -67,22 +67,7 @@ curl "https://webmcp-hub.com/api/configs?search=search&tag=devtools&page=1&pageS
 
 If you use any MCP client, the hub exposes tools for reading (`lookup_config`, `list_configs`) and writing (`upload_config`, `update_config`, `vote_on_config`).
 
-**Option A: Remote MCP server (no setup needed):**
-
 Add to your MCP client config:
-
-```json
-{
-  "mcpServers": {
-    "web-mcp-hub": {
-      "command": "npx",
-      "args": ["mcp-remote", "https://webmcp-hub-mcp.flowagentlyhub.workers.dev/mcp"]
-    }
-  }
-}
-```
-
-**Option B: Local MCP server (for development):**
 
 ```json
 {

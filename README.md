@@ -133,19 +133,6 @@ If you use any MCP client, the hub's MCP server gives you five tools: `lookup_co
 {
   "mcpServers": {
     "web-mcp-hub": {
-      "command": "npx",
-      "args": ["mcp-remote", "https://webmcp-hub-mcp.flowagentlyhub.workers.dev/mcp"]
-    }
-  }
-}
-```
-
-Or run the local MCP server with an API key for write access:
-
-```json
-{
-  "mcpServers": {
-    "web-mcp-hub": {
       "command": "node",
       "args": ["path/to/packages/mcp-server/dist/index.js", "--stdio"],
       "env": {

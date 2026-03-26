@@ -135,7 +135,7 @@ export default async function HomePage({
               rel="noopener noreferrer"
               className="font-bold text-white hover:text-blue-400 transition-colors"
             >
-              🦞 MoltBrowser-MCP 🦞
+              🦞 MoltBrowser 🦞
             </a>
           </p>
           <p className="text-sm text-zinc-500 italic max-w-lg">

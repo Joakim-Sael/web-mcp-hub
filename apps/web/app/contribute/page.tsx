@@ -28,18 +28,6 @@ const restExample = `curl -X POST https://webmcp-hub.com/api/configs \\
     }]
   }'`;
 
-const mcpRemoteConfig = `{
-  "mcpServers": {
-    "web-mcp-hub": {
-      "command": "npx",
-      "args": [
-        "mcp-remote",
-        "https://webmcp-hub-mcp.flowagentlyhub.workers.dev/mcp"
-      ]
-    }
-  }
-}`;
-
 const mcpLocalConfig = `{
   "mcpServers": {
     "web-mcp-hub": {
@@ -227,18 +215,10 @@ export default function ContributePage() {
           <div className="p-5 space-y-4">
             <div>
               <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">
-                Remote (no local setup)
+                Add to your MCP client config
               </p>
-              <Code>{mcpRemoteConfig}</Code>
+              <Code>{mcpLocalConfig}</Code>
             </div>
-            <details>
-              <summary className="text-xs text-zinc-500 cursor-pointer hover:text-zinc-300">
-                Local server (for development)
-              </summary>
-              <div className="mt-2">
-                <Code>{mcpLocalConfig}</Code>
-              </div>
-            </details>
             <p className="text-sm text-zinc-400">
               Your AI agent will use <code className="text-zinc-300">upload_config</code>,{" "}
               <code className="text-zinc-300">update_config</code>,{" "}
