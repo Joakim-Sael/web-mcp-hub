@@ -30,11 +30,11 @@ const restExample = `curl -X POST https://webmcp-hub.com/api/configs \\
 
 const mcpLocalConfig = `{
   "mcpServers": {
-    "web-mcp-hub": {
-      "command": "node",
-      "args": ["path/to/packages/mcp-server/dist/index.js", "--stdio"],
+    "moltbrowser-mcp": {
+      "command": "npx",
+      "args": ["moltbrowser-mcp-server"],
       "env": {
-        "HUB_URL": "http://localhost:3000"
+        "HUB_API_KEY": "whub_your_api_key"
       }
     }
   }
